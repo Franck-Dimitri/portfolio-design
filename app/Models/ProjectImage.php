@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ProjectImage extends Model
+{
+    
+    protected $fillable = [
+        'project_id',
+        'path',
+        'type',
+        'position'
+    ];
+
+    public function ProjectImage(){
+        return $this->beLongsTo(Project::class);
+    }
+}

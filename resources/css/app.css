@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 /* ═══════════════════════════════════════════════════════════════
    resources/css/app.css
    Portfolio – Thème principal (Light / Dark) + Police Outfit
@@ -9,7 +11,6 @@
 @tailwind utilities;
 
 /* ─── Google Font : Outfit ───────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
    CSS CUSTOM PROPERTIES – THÈME LIGHT (défaut)

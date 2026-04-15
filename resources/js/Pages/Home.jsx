@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/react'
 import {
     ArrowRight, ExternalLink, Sparkles, Eye,
     Layers, Palette, Zap, Award, ChevronDown,
-    Star, ArrowUpRight
+    Star, ArrowUpRight, Mail
 } from 'lucide-react'
 import MainLayout from '@/Layouts/MainLayout'
 import SEOHead from '@/Components/SEOHead'
@@ -336,13 +336,13 @@ export default function Home() {
 
                 {/* Orbe orange haut-droite */}
                 <div
-                    className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10 dark:opacity-[0.06] pointer-events-none animate-blob"
+                    className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10 pointer-events-none animate-blob"
                     style={{ background: 'radial-gradient(circle, #f97316 0%, #ea580c 60%, transparent 100%)' }}
                     aria-hidden="true"
                 />
                 {/* Orbe orange bas-gauche */}
                 <div
-                    className="absolute -bottom-48 -left-24 w-80 h-80 rounded-full opacity-8 dark:opacity-[0.04] pointer-events-none animate-blob"
+                    className="absolute -bottom-48 -left-24 w-80 h-80 rounded-full opacity-8 pointer-events-none animate-blob"
                     style={{ animationDelay: '3s', background: 'radial-gradient(circle, #fb923c 0%, transparent 70%)' }}
                     aria-hidden="true"
                 />
@@ -369,7 +369,7 @@ export default function Home() {
                         </h1>
 
                         {/* Sous-titre typer */}
-                        <div className={`h-8 mb-6 transition-all duration-700 delay-200 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                        <div className={`h-8 mb-6 transition-all duration-7000 delay-7000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
                             <p className="text-xl font-medium text-base-secondary">
                                 {typedText}
                                 <span className="animate-blink text-primary-500 ml-0.5">|</span>
@@ -417,9 +417,14 @@ export default function Home() {
                                 <span className="text-base-muted text-xs">28+ clients satisfaits</span>
                             </div>
                         </div>
+                        <div className={`flex items-center gap-3 mt-8 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                            <div className='border border-primary-300 p-3 rounded-lg text-primary-400'>
+                                <Mail size={18}/>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* ── Colonne visuelle ──────────────────────────── */}
+                 {/* ── Colonne visuelle ──────────────────────────── */}
                     <div className={`relative shrink-0 transition-all duration-1000 delay-200 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
                         {/* Cadre principal */}
@@ -432,16 +437,17 @@ export default function Home() {
                                 aria-hidden="true"
                             />
 
-                            {/* Cadre photo – remplacer bg par votre photo */}
-                            <div className="relative z-10 w-full h-full rounded-3xl overflow-hidden border-2 border-[var(--border-base)] shadow-orange-lg bg-gradient-to-br from-primary-100 to-primary-50 dark:from-[rgba(249,115,22,0.15)] dark:to-[rgba(249,115,22,0.05)] flex items-center justify-center">
-                                {/* Placeholder → remplacer par <img src="/photo.jpg" alt="Votre Nom" className="w-full h-full object-cover" /> */}
-                                <div className="text-center px-8">
-                                    <div className="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center mx-auto mb-3">
-                                        <span className="text-white font-black text-2xl">VN</span>
-                                    </div>
-                                    <p className="text-sm text-base-muted">Votre photo ici</p>
-                                    <p className="text-xs text-base-subtle mt-1">Remplacer par <code className="bg-muted px-1 rounded">&lt;img&gt;</code></p>
-                                </div>
+                            {/* Cadre photo corrigé */}
+                            <div className="relative z-10 w-full h-full rounded-3xl overflow-hidden border-2 border-[var(--border-base)] shadow-orange-lg bg-gradient-to-br from-primary-100 to-primary-50">
+                                
+                                {/* Si MonImage existe, on l'affiche en plein écran dans le cadre */}
+                                
+                                    <img 
+                                        src="/image/moi1.JPG" 
+                                        alt="Franck Dimitri" 
+                                        className="w-full h-full object-cover object-center" 
+                                    />
+    
                             </div>
 
                             {/* Badge flottant – expérience */}
@@ -450,7 +456,7 @@ export default function Home() {
                                     <span className="text-primary-500"><Award size={14} /></span>
                                     <div>
                                         <p className="text-xs font-bold text-base-primary leading-none">6 ans</p>
-                                        <p className="text-[10px] text-base-muted">d'expérience</p>
+                                        <p className="text-[10px] text-base-muted whitespace-nowrap">d'expérience</p>
                                     </div>
                                 </div>
                             </div>
@@ -461,7 +467,7 @@ export default function Home() {
                                     <span className="text-primary-500"><Sparkles size={14} /></span>
                                     <div>
                                         <p className="text-xs font-bold text-base-primary leading-none">47+</p>
-                                        <p className="text-[10px] text-base-muted">projets</p>
+                                        <p className="text-[10px] text-base-muted whitespace-nowrap">projets finis</p>
                                     </div>
                                 </div>
                             </div>
