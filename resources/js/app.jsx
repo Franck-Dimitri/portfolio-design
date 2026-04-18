@@ -6,6 +6,12 @@ import { createInertiaApp } from '@inertiajs/react'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import { ThemeProvider } from './Providers/ThemeProvider'
 
+import { Ziggy } from './ziggy';
+import { route as ziggyRoute } from 'ziggy-js';
+
+// Rendre route() disponible globalement dans tout le frontend
+window.route = (name, params, absolute) => ziggyRoute(name, params, absolute, Ziggy);
+
 
 /* ─── Résolution de nom d'appli ──────────────────────────────── */
 const appName = import.meta.env.VITE_APP_NAME || 'Portfolio'

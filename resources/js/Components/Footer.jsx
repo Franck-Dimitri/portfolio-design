@@ -52,7 +52,7 @@ export default function Footer(){
                                         <h3 className="text-sm font-semibold text-base-primary mb-4 uppercase tracking-wider">Contact</h3>
                                         <ul className="space-y-2 text-sm text-base-muted">
                                             <li>
-                                                <a href="mailto:hello@votreportfolio.com" className="hover:text-primary-500 transition-colors">
+                                                <a href="mailto:franckdimitrio009@gmail.com" className="hover:text-primary-500 transition-colors">
                                                     franckdimitrio009@gmail.com
                                                 </a>
                                             </li>

@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/react'
 import {
     ArrowRight, ExternalLink, Sparkles, Eye,
     Layers, Palette, Zap, Award, ChevronDown,
-    Star, ArrowUpRight, Mail
+    Star, ArrowUpRight, Mail, MessageSquare
 } from 'lucide-react'
 import MainLayout from '@/Layouts/MainLayout'
 import SEOHead from '@/Components/SEOHead'
@@ -192,34 +192,7 @@ const FEATURED_PROJECTS = [
         tags: ['Mise en page', 'Typographie', 'Print'],
         gradient: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #059669 100%)',
         url: null,
-    },
-    {
-        slug: 'system-ui-neo',
-        title: 'System UI Neo',
-        description: 'Design system complet pour une application SaaS B2B : 200+ composants.',
-        category: 'UI Design',
-        tags: ['Figma', 'Tokens', 'UI/UX'],
-        gradient: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0ea5e9 100%)',
-        url: null,
-    },
-    {
-        slug: 'heritage-mark',
-        title: 'Heritage Mark',
-        description: 'Création d\'un emblème pour une maison d\'hôtes de luxe en Afrique centrale.',
-        category: 'Logo',
-        tags: ['Marque', 'Luxe', 'Identité'],
-        gradient: 'linear-gradient(135deg, #78350f 0%, #92400e 50%, #b45309 100%)',
-        url: null,
-    },
-    {
-        slug: 'pulse-motion',
-        title: 'Pulse Motion',
-        description: 'Animations de marque et motion design pour une chaîne YouTube tech.',
-        category: 'Motion Design',
-        tags: ['After Effects', 'Animation', 'Brand'],
-        gradient: 'linear-gradient(135deg, #4a044e 0%, #701a75 50%, #a21caf 100%)',
-        url: 'https://example.com',
-    },
+    }
 ]
 
 const SERVICES = [
@@ -248,28 +221,28 @@ const SERVICES = [
 const STATS = [
     { value: '47',  suffix: '+', label: 'Projets livrés' },
     { value: '28',  suffix: '',  label: 'Clients satisfaits' },
-    { value: '6',   suffix: '+', label: 'Années d\'expérience' },
+    { value: '3',   suffix: '+', label: 'Années d\'expérience' },
     { value: '12',  suffix: '',  label: 'Awards & mentions' },
 ]
 
 const TESTIMONIALS = [
     {
         quote: "Un sens de l'esthétique rare. Notre identité de marque a été transformée, et nos clients le sentent immédiatement.",
-        author: 'Marie Dubois',
-        role: 'CEO, Maison Élevée',
-        avatar: 'MD',
+        author: 'Jules Onana',
+        role: 'Entrepreneur',
+        avatar: 'JO',
     },
     {
         quote: "Livré en avance, au-delà des attentes. La direction artistique de notre campagne a dépassé nos KPIs de 40%.",
-        author: 'Koffi Mensah',
+        author: 'Lucien Mensah',
         role: 'Marketing Director, PayCam',
-        avatar: 'KM',
+        avatar: 'LM',
     },
     {
         quote: "Pas juste un designer — un vrai partenaire créatif. Il comprend les enjeux business autant que l'esthétique.",
-        author: 'Sophie Laurent',
+        author: 'Mouaffo Ange',
         role: 'Founder, Heritage Stays',
-        avatar: 'SL',
+        avatar: 'MA',
     },
 ]
 
@@ -369,7 +342,7 @@ export default function Home() {
                         </h1>
 
                         {/* Sous-titre typer */}
-                        <div className={`h-8 mb-6 transition-all duration-7000 delay-7000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                        <div className={`h-8 mb-6 transition-all duration-70000 delay-70000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
                             <p className="text-xl font-medium text-base-secondary">
                                 {typedText}
                                 <span className="animate-blink text-primary-500 ml-0.5">|</span>
@@ -418,9 +391,22 @@ export default function Home() {
                             </div>
                         </div>
                         <div className={`flex items-center gap-3 mt-8 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            <div className='border border-primary-300 p-3 rounded-lg text-primary-400'>
-                                <Mail size={18}/>
-                            </div>
+                            
+                            <a href="mailto:franckdimitrio009@gmail.com" className="group hover:text-primary-500 transition-colors flex justify-center items-center gap-3">
+                                <div className='border border-primary-400 p-2 rounded-md text-primary-400'>
+                                    <Mail size={17}/>
+                                </div>
+                                franckdimitrio009@gmail.com
+                            </a>
+
+
+                            <a href="https://wa.me/676383986" className="group hover:text-primary-500 transition-colors flex justify-center items-center gap-3">
+                                 <div className='border border-primary-400 p-2 rounded-md text-primary-400'>
+                                    <MessageSquare size={17}/>
+                                </div>
+                                whatsApp
+                            </a>
+                           
                         </div>
                     </div>
 
@@ -455,7 +441,7 @@ export default function Home() {
                                 <div className="flex items-center gap-2">
                                     <span className="text-primary-500"><Award size={14} /></span>
                                     <div>
-                                        <p className="text-xs font-bold text-base-primary leading-none">6 ans</p>
+                                        <p className="text-xs font-bold text-base-primary leading-none">3 ans</p>
                                         <p className="text-[10px] text-base-muted whitespace-nowrap">d'expérience</p>
                                     </div>
                                 </div>
@@ -657,7 +643,7 @@ export default function Home() {
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
                                 </Link>
                                 <a
-                                    href="mailto:hello@votreportfolio.com"
+                                    href="https://wa.me/676383986"
                                     className="inline-flex items-center justify-center gap-2 border-2 border-white/30 text-white
                                                font-semibold px-8 py-4 rounded-2xl hover:bg-white/10 transition-all duration-200"
                                 >

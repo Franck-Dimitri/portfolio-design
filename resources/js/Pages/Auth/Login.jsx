@@ -16,6 +16,7 @@ export default function Login({ status, canResetPassword }) {
     const submit = (e) => {
         e.preventDefault();
 
+        // ✅ Maintenant ça fonctionne !
         post(route('login'), {
             onFinish: () => reset('password'),
         });
@@ -83,6 +84,7 @@ export default function Login({ status, canResetPassword }) {
                 <div className="mt-4 flex items-center justify-end">
                     {canResetPassword && (
                         <Link
+                            // ✅ Maintenant ça fonctionne aussi !
                             href={route('password.request')}
                             className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
