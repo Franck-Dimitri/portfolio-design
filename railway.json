@@ -1,10 +1,11 @@
 {
   "$schema": "https://railway.app/railway.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "composer install --no-dev && npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "php artisan migrate --force && php artisan config:cache && php artisan route:cache && npm install && php artisan serve --host 0.0.0.0 --port=$PORT && npm run build && vendor/bin/heroku-php-nginx public/",
+    "startCommand": "vendor/bin/heroku-php-nginx public/",
     "restartPolicyType": "ON_FAILURE"
   }
 }
