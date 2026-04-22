@@ -27,32 +27,37 @@ function useInView(options = {}) {
 const MOCK_PROJECTS = [
     {
         id: 1,
-        titre: "Branding Maison Élevée",
-        description: "Création d'une identité visuelle complète pour une marque de cosmétiques naturels premium. Logo, packaging, et supports digitaux.",
-        cathegorie: "Branding",
-        outils: ["Figma", "Illustrator", "Photoshop"],
-        prix: "250000",
-        slug: "branding-maison-elevee",
+        titre: "Couverture d'evenement festif",
+        description: "COnception et reaclisatin de plusiers element de commnunication pour une grande soiree, la plus grande soiree de l'IAI-Cameroun, la soiree de parrainnage",
+        cathegorie: "Flyers, evenement",
+        image: "/image/moi1.JPG",
+
+        outils: ["Illustrator", "Photoshop"],
+        prix: "145000",
+        slug: "couverture-evenement-iai",
         is_featured: true,
         image: null,
     },
     {
         id: 2,
-        titre: "Application Mobile Fintech",
-        description: "Design UI/UX d'une application bancaire moderne avec interface intuitive et accessible.",
-        cathegorie: "UI/UX Design",
-        outils: ["Figma", "Prototype", "After Effects"],
-        prix: "200000",
+        titre: "Conception de logo -- Brik's Design",
+        image: "/image/moi1.JPG",
+        description: "Conception et realisation d'un logo Typographique pour une entreprise de prestation de services en communication visuelle",
+        cathegorie: "Logo",
+        outils: ["Illustrator", "Photoshop"],
+        prix: "90000",
         slug: "app-mobile-fintech",
         is_featured: true,
         image: null,
     },
     {
         id: 3,
-        titre: "Campagne Publicitaire",
-        description: "Direction artistique d'une campagne panafricaine pour une startup technologique.",
-        cathegorie: "Direction artistique",
-        outils: ["Photoshop", "Premiere Pro", "Lightroom"],
+        titre: "Communication Pro",
+        description: "Direction artistique d'une campagne de propection pour une plate-forme evenementielle -- ca-bouge-ou.com.",
+        cathegorie: "Flyer",
+        image: "/image/moi1.JPG",
+
+        outils: ["Photoshop",],
         prix: "50000",
         slug: "campagne-publicitaire",
         is_featured: false,
@@ -66,6 +71,8 @@ const MOCK_PROJECTS = [
         outils: ["Illustrator", "Photoshop", "Dimension"],
         prix: "98000",
         slug: "packaging-luxe",
+        image: "/image/moi1.JPG",
+
         is_featured: true,
         image: null,
     },
@@ -85,6 +92,8 @@ const MOCK_PROJECTS = [
         titre: "Motion Graphics Showreel",
         description: "Animation et motion design pour une agence de communication.",
         cathegorie: "Motion Design",
+        image: "/image/moi1.JPG",
+
         outils: ["After Effects", "Cinema 4D", "Premiere Pro"],
         prix: "120000",
         slug: "motion-graphics",
@@ -107,12 +116,14 @@ function ProjectCard({ project, index }) {
             <div className="relative h-56 bg-gradient-to-br from-primary-500/20 to-primary-700/20 overflow-hidden">
                 {project.image ? (
                     <img 
-                        src={`/storage/${project.image}`} 
+                        src={project.image}
                         alt={project.titre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
+                        
+                                                
                         <div className="text-center">
                             <Sparkles size={40} className="text-primary-500/50 mx-auto mb-2" />
                             <p className="text-xs text-primary-500/50">Image du projet</p>
