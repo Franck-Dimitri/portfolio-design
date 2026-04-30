@@ -228,7 +228,7 @@ const STATS = [
 const TESTIMONIALS = [
     {
         quote: "Un sens de l'esthétique rare. Notre identité de marque a été transformée, et nos clients le sentent immédiatement.",
-        author: 'Jules Onana',
+        author: 'Kalebia Franck',
         role: 'Entrepreneur',
         avatar: 'JO',
     },
@@ -335,7 +335,7 @@ export default function Home() {
 
                         {/* Titre principal */}
                         <h1 className={`mb-4 transition-all duration-700 delay-100 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            Je crée des{' '}
+                            Nous créeons des{' '}
                             <span className="text-gradient">identités</span>
                             <br />
                             qui marquent.
@@ -351,7 +351,7 @@ export default function Home() {
 
                         {/* Description */}
                         <p className={`text-base text-base-muted leading-relaxed max-w-lg mx-auto lg:mx-0 mb-10 transition-all duration-700 delay-300 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            Je transforme des idées en systèmes visuels percutants —
+                            Nous transforme des idées en systèmes visuels percutants —
                             du logo au motion, du print au digital.
                             Chaque projet est une histoire à raconter visuellement.
                         </p>
@@ -392,11 +392,11 @@ export default function Home() {
                         </div>
                         <div className={`flex items-center gap-3 mt-8 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
                             
-                            <a href="mailto:franckdimitrio009@gmail.com" className="group hover:text-primary-500 transition-colors flex justify-center items-center gap-3">
+                            <a href="mailto:dims.creative.academy@gmail.com" className="group hover:text-primary-500 transition-colors flex justify-center items-center gap-3">
                                 <div className='border border-primary-400 p-2 rounded-md text-primary-400'>
                                     <Mail size={17}/>
                                 </div>
-                                franckdimitrio009@gmail.com
+                                dims.creative.academy@gmail.com
                             </a>
 
 
@@ -429,7 +429,7 @@ export default function Home() {
                                 {/* Si MonImage existe, on l'affiche en plein écran dans le cadre */}
                                 
                                     <img 
-                                        src="/image/moi1.JPG" 
+                                        src="/image/brand-logo.jpg" 
                                         alt="Franck Dimitri" 
                                         className="w-full h-full object-cover object-center" 
                                     />
@@ -441,7 +441,7 @@ export default function Home() {
                                 <div className="flex items-center gap-2">
                                     <span className="text-primary-500"><Award size={14} /></span>
                                     <div>
-                                        <p className="text-xs font-bold text-base-primary leading-none">3 ans</p>
+                                        <p className="text-xs font-bold text-base-primary leading-none">Brand</p>
                                         <p className="text-[10px] text-base-muted whitespace-nowrap">d'expérience</p>
                                     </div>
                                 </div>
@@ -566,7 +566,7 @@ export default function Home() {
                             <span className="divider" />
                         </div>
                         <h2 id="testimonials-title">
-                            Ils me font <span className="text-gradient">confiance</span>
+                            Ils nous font <span className="text-gradient">confiance</span>
                         </h2>
                     </div>
                     <div
@@ -629,7 +629,7 @@ export default function Home() {
                                 notre prochaine collaboration.
                             </h2>
                             <p className="text-primary-100 max-w-md mx-auto mb-8 text-base leading-relaxed">
-                                Partagez votre vision. Je vous réponds sous 24h
+                                Partagez votre vision. Nous vous répondrons sous 24h
                                 avec une première proposition créative.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">

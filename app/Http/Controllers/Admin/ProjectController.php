@@ -12,77 +12,118 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Project::orderBy('created_at', 'desc')->get();
+        $projects = Project::with('images')->latest()->get();
+        
+        $cathegories = [
+            'logo design',
+            'branding',
+            'flyer design',
+            'poster design',
+            'social media design',
+            'ui/ux design',
+            'illustration',
+            'autre'
+        ];
+
         return inertia('Admin/pages/Projet', [
-            'projects' => $projects
+            'projects' => $projects,
+            'cathegories' => $cathegories
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'titre' => 'required|string|max:255',
-            'description' => 'required|string',
-            'cathegorie' => 'required|string',
-            'outils' => 'nullable|json',
-            'prix' => 'nullable|numeric',
-            'image' => 'nullable|image|max:2048',
-            'is_featured' => 'boolean',
-            'is_published' => 'boolean',
-        ]);
+        try {
+            // Validation des champs texte
+            $validated = $request->validate([
+                'titre' => 'required|string|max:255',
+                'description' => 'required|string',
+                'cathegorie' => 'required|string',
+                'prix' => 'nullable|numeric',
+                'is_featured' => 'boolean',
+                'is_published' => 'boolean',
+            ]);
 
-        $data = $request->all();
-        $data['slug'] = Str::slug($request->titre);
-        $data['outils'] = json_decode($request->outils, true) ?? [];
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('projects', 'public');
-            $data['image'] = $path;
-        }
-
-        Project::create($data);
-
-        return redirect()->route('admin.projects.index')->with('success', 'Project created successfully');
-    }
-
-    public function update(Request $request, Project $project)
-    {
-        $request->validate([
-            'titre' => 'required|string|max:255',
-            'description' => 'required|string',
-            'cathegorie' => 'required|string',
-            'outils' => 'nullable|json',
-            'prix' => 'nullable|numeric',
-            'image' => 'nullable|image|max:2048',
-            'is_featured' => 'boolean',
-            'is_published' => 'boolean',
-        ]);
-
-        $data = $request->all();
-        $data['slug'] = Str::slug($request->titre);
-        $data['outils'] = json_decode($request->outils, true) ?? [];
-
-        if ($request->hasFile('image')) {
-            if ($project->image) {
-                Storage::disk('public')->delete($project->image);
+            // Vérifier les images
+            if (!$request->hasFile('images')) {
+                return back()->withErrors(['images' => 'Please select at least 4 images'])->withInput();
             }
-            $path = $request->file('image')->store('projects', 'public');
-            $data['image'] = $path;
+            
+            $images = $request->file('images');
+            $imagesArray = is_array($images) ? $images : [$images];
+            
+            if (count($imagesArray) < 4) {
+                return back()->withErrors(['images' => 'Minimum 4 images required'])->withInput();
+            }
+
+            // Traiter les outils
+            $tools = [];
+            if ($request->has('outils')) {
+                $outilsInput = $request->input('outils');
+                if (is_string($outilsInput)) {
+                    $tools = json_decode($outilsInput, true) ?: [];
+                } elseif (is_array($outilsInput)) {
+                    $tools = $outilsInput;
+                }
+            }
+            
+            $tools = array_values(array_filter($tools, fn($tool) => !empty(trim($tool))));
+            
+            if (count($tools) < 3) {
+                return back()->withErrors(['outils' => 'Please add at least 3 tools'])->withInput();
+            }
+
+            // Créer le slug
+            $slug = Str::slug($request->titre);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (Project::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter++;
+            }
+
+            // Créer le projet
+            $project = Project::create([
+                'titre' => $request->titre,
+                'description' => $request->description,
+                'cathegorie' => $request->cathegorie,
+                'prix' => $request->prix ?: null,
+                'is_featured' => (bool) $request->is_featured,
+                'is_published' => (bool) $request->is_published,
+                'slug' => $slug,
+                'outils' => $tools,
+            ]);
+
+            // Upload des images
+            foreach ($imagesArray as $index => $image) {
+                if ($image->isValid()) {
+                    $filename = time() . '_' . $index . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+                    $path = $image->storeAs('projects', $filename, 'public');
+                    
+                    $project->images()->create([
+                        'path' => $path,
+                        'type' => 'preview', // Utiliser 'preview' au lieu de 'image'
+                        'position' => $index
+                    ]);
+                }
+            }
+
+            return redirect()->route('admin.projects.index')
+                ->with('success', 'Project created successfully!');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
-
-        $project->update($data);
-
-        return redirect()->route('admin.projects.index')->with('success', 'Project updated successfully');
     }
 
     public function destroy(Project $project)
     {
-        if ($project->image) {
-            Storage::disk('public')->delete($project->image);
+        foreach ($project->images as $image) {
+            Storage::disk('public')->delete($image->path);
         }
         
+        $project->images()->delete();
         $project->delete();
-        
-        return redirect()->route('admin.projects.index')->with('success', 'Project deleted successfully');
+
+        return back()->with('success', 'Project deleted');
     }
 }

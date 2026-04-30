@@ -58,9 +58,9 @@ export default function Propos() {
     ]
 
     const values = [
-        { icon: Heart, title: "Passion", description: "Je mets tout mon cœur dans chaque projet pour créer des designs qui racontent une histoire." },
+        { icon: Heart, title: "Passion", description: "Nous mettons toute notre passion dans chaque projet pour créer des designs qui racontent une histoire." },
         { icon: Target, title: "Précision", description: "Chaque détail compte. Une approche méticuleuse pour des résultats impeccables." },
-        { icon: Coffee, title: "Dévouement", description: "Je m'investis pleinement jusqu'à ce que vous soyez totalement satisfait." },
+        { icon: Coffee, title: "Dévouement", description: "Nous nous investissons pleinement jusqu'à ce que vous soyez totalement satisfait." },
         { icon: Sparkles, title: "Créativité", description: "Des solutions originales qui font la différence et marquent les esprits." },
     ]
 
@@ -77,7 +77,7 @@ export default function Propos() {
         <MainLayout>
             <SEOHead 
                 title="À propos"
-                description="Designer graphique freelance passionné par la création d'identités visuelles percutantes. Découvrez mon parcours et ma philosophie."
+                description="Agence création digitale d'identités visuelles percutantes. Découvrez nos services et notre philosophie."
                 url="/a-propos"
             />
 
@@ -95,18 +95,18 @@ export default function Propos() {
                                 <span className="text-sm font-medium text-primary-500 uppercase tracking-wider">À propos</span>
                             </div>
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                                Je crée des identités qui{' '}
+                                Nous créeons des identités qui{' '}
                                 <span className="text-gradient">racontent</span>
-                                <br />votre histoire
+                                <br />Votre histoire
                             </h1>
                             <p className="text-lg text-base-muted leading-relaxed mb-6">
-                                Designer graphique freelance basé à Yaoundé, je transforme des idées en 
-                                systèmes visuels percutants depuis plus de 6 ans. Mon approche allie 
+                                Agence de création digitale basé à Yaoundé, Nous transforme des idées en 
+                                systèmes visuels percutants depuis plus de 3 ans. Notre approche allie 
                                 créativité audacieuse et stratégie de marque.
                             </p>
                             <p className="text-base text-base-muted mb-8">
                                 Chaque projet est unique, chaque histoire mérite d'être racontée visuellement.
-                                Je collabore avec des entrepreneurs, des marques et des agences pour créer 
+                                Nous collaborons avec des entrepreneurs, des marques et des agences pour créer 
                                 des designs qui ne passent pas inaperçus.
                             </p>
                             <div className="flex gap-4">
@@ -115,7 +115,7 @@ export default function Propos() {
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
                                 <Link href="/projets" className="btn-secondary btn-lg">
-                                    Voir mon travail
+                                    Voir nos travaux
                                 </Link>
                             </div>
                         </div>
@@ -131,7 +131,7 @@ export default function Propos() {
                                         <Award className="text-primary-500" size={24} />
                                         <div>
                                             <p className="text-sm font-bold">3+ années</p>
-                                            <p className="text-xs text-base-muted">d'expérience</p>
+                                            <p className="text-xs text-base-muted"> de créativité</p>
                                         </div>
                                     </div>
                                 </div>
@@ -207,7 +207,7 @@ export default function Propos() {
                                 <span className="text-gradient">Expertise</span>
                             </h2>
                             <p className="text-base-muted mb-8">
-                                Des compétences variées pour répondre à tous vos besoins créatifs,
+                                Des services variées pour répondre à tous vos besoins créatifs,
                                 du concept à la réalisation finale.
                             </p>
                             <div className="space-y-6">
@@ -227,7 +227,7 @@ export default function Propos() {
                         </div>
                         <div>
                             <div className="bg-gradient-to-br from-primary-500/10 to-primary-700/10 rounded-3xl p-8 border border-primary-500/20">
-                                <h3 className="text-2xl font-bold mb-4">Pourquoi collaborer avec moi ?</h3>
+                                <h3 className="text-2xl font-bold mb-4">Pourquoi collaborer avec nous ?</h3>
                                 <ul className="space-y-4">
                                     {[
                                         "Une approche personnalisée pour chaque projet",
@@ -275,7 +275,7 @@ export default function Propos() {
                         <div className="relative z-10">
                             <h2 className="text-white mb-4">Parlons de votre projet</h2>
                             <p className="text-primary-100 max-w-md mx-auto mb-8">
-                                Vous avez une idée ? Je suis là pour la concrétiser.
+                                Vous avez une idée ? Nous sommes là pour la concrétiser.
                             </p>
                             <Link href="/contact" className="inline-flex items-center gap-2 bg-white text-primary-600 px-8 py-4 rounded-2xl font-semibold hover:bg-primary-50 transition-all group">
                                 Me contacter

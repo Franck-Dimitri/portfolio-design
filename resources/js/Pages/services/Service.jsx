@@ -188,8 +188,8 @@ export default function Service() {
                             <span className="divider" />
                         </div>
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                            Comment je{' '}
-                            <span className="text-gradient">travaille</span>
+                            Comment nous{' '}
+                            <span className="text-gradient">travaillons</span>
                         </h2>
                         <p className="text-base-muted">
                             Une méthodologie claire et transparente pour vous accompagner
@@ -229,19 +229,19 @@ export default function Service() {
                         {[
                             {
                                 q: "Quels sont vos tarifs ?",
-                                a: "Les tarifs varient selon la complexité du projet. Je propose des devis personnalisés après avoir discuté de vos besoins."
+                                a: "Nous proposons des packs de conception adapté à votre besoin. veillez consulter l'espace Pack de Conception. Nous peuvent tarifs varient selon la complexité du projet. Nous proposons des devis personnalisés après avoir discuté de vos besoins."
                             },
                             {
                                 q: "Quels sont les délais de livraison ?",
-                                a: "En moyenne, comptez 2 à 4 semaines selon l'ampleur du projet. Je m'engage à respecter les délais convenus."
+                                a: "En moyenne, comptez 3 à 7 jours ou en terme de semaines selon l'ampleur du projet. Nous nous engagons à respecter les délais convenus."
                             },
                             {
                                 q: "Comment se passe la collaboration ?",
-                                a: "Je travaille en étroite collaboration avec vous, avec des points réguliers et des livraisons itératives."
+                                a: "Nous travaille en étroite collaboration avec vous, avec des points réguliers et des livraisons itératives."
                             },
                             {
                                 q: "Fournissez-vous les fichiers sources ?",
-                                a: "Oui, vous recevez tous les fichiers sources organisés et prêts à l'emploi."
+                                a: "Oui, selon votre plan vous recevez tous les fichiers sources organisés et prêts à l'emploi."
                             }
                         ].map((faq, i) => (
                             <div key={i} className="card p-6">
@@ -267,9 +267,9 @@ export default function Service() {
                                     Demander un devis
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </Link>
-                                <a href="mailto:franckdimitrio009@gmail.com" className="inline-flex items-center gap-2 border-2 border-white/30 text-white hover:text-white px-8 py-4 rounded-2xl hover:bg-white/10 transition-all">
+                                <a href="mailto:dims.creative.academy@gmail.com" className="inline-flex items-center gap-2 border-2 border-white/30 text-white hover:text-white px-8 py-4 rounded-2xl hover:bg-white/10 transition-all">
                                     <Mail size={18} />
-                                    franckdimitrio009@gmail.com
+                                    dims.creative.academy@gmail.com
                                 </a>
                             </div>
                         </div>

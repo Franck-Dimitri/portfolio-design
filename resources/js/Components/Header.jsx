@@ -88,7 +88,7 @@ export default function Header() {
                             </span>
                         </span>
                         <span className='font-display font-bold text-base-primary tracking-tight'>
-                            Dim's <span className='text-gradient'>Design</span>
+                            Dim's <span className='text-gradient'>Creative Academy</span>
                         </span>
                     </Link>
 

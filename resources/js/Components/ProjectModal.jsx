@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
-import { X, Plus, Trash2 } from 'lucide-react';
-
+import {
+    FolderGit2,
+    Eye,
+    Pencil,
+    Trash2,
+    Image as ImageIcon,
+    Users,
+    TrendingUp,
+    BarChart3,
+    Plus,
+    Settings,
+    X, Plus, Trash2
+    
+} from 'lucide-react';
 export default function ProjectModal({ show, onClose, project = null, onSuccess }) {
     const [images, setImages] = useState([]);
     const [tools, setTools] = useState(['']);
@@ -94,7 +106,7 @@ export default function ProjectModal({ show, onClose, project = null, onSuccess 
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                 <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
 
@@ -109,7 +121,7 @@ export default function ProjectModal({ show, onClose, project = null, onSuccess 
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4 " enctype="multipart/form-data">
+                        <form onSubmit={handleSubmit} className="space-y-4 ">
                             {/* Titre */}
                             @csrf
                             <div>

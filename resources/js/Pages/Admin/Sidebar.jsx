@@ -39,12 +39,12 @@ export function Sidebar() {
 
                 <Link href="/" className="flex items-center gap-2 group">
                     <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary-500 text-white font-bold">
-                        D
+                        DCA
                     </div>
 
                     {open && (
                         <span className="font-bold text-base-primary">
-                            Dim's <span className="text-gradient">Design</span>
+                            Dim's <span className="text-gradient">Creative Academy</span>
                         </span>
                     )}
                 </Link>
@@ -57,7 +57,7 @@ export function Sidebar() {
                 </button>
             </div>
 
-            {/* NAVIGATION */}
+            {/* NAVIGATION */}Design
             <nav className="flex flex-col gap-3 p-3">
 
                 {NAV_LINKS.map((link) => {

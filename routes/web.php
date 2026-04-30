@@ -19,30 +19,25 @@ Route::get('/', function () {
     return Inertia::render('Home');
 });
 
+Route::middleware(['auth', 'verified'], ['role', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/pages/Dashboard');
+    });
 
-Route::get('/admin/dashboard', function () {
-    return Inertia::render('Admin/pages/Dashboard');
-})->middleware(['auth', 'verified'], ['role', 'admin'])->name('dashboard');
+    Route::get('/services', function () {
+        return Inertia::render('Admin/pages/Services');
+    });
+    Route::get('/blogs', function () {
+        return Inertia::render('Admin/pages/Blog');
+    });
 
-Route::get('/admin/projects', function () {
-    return Inertia::render('Admin/pages/Projet');
-})->middleware(['auth', 'verified'], ['role', 'admin'])->name('dashboard');
-
-Route::get('/admin/services', function () {
-    return Inertia::render('Admin/pages/Services');
-})->middleware(['auth', 'verified'], ['role', 'admin'])->name('dashboard');
-
-Route::get('/admin/blogs', function () {
-    return Inertia::render('Admin/pages/Blog');
-})->middleware(['auth', 'verified'], ['role', 'admin'])->name('dashboard');
-
-Route::get('/admin/packages', function () {
-    return Inertia::render('Admin/pages/Package');
-})->middleware(['auth', 'verified'], ['role', 'admin'])->name('dashboard');
-
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/packages', function () {
+        return Inertia::render('Admin/pages/Package');
+    });
     Route::resource('projects', ProjectController::class);
 });
+
+
 Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');

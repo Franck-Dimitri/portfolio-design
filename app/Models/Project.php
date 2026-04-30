@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
+    protected $table = 'projects';
+    
     protected $fillable = [
         'titre',
         'description',
@@ -13,13 +15,21 @@ class Project extends Model
         'cathegorie',
         'outils',
         'prix',
-        'image',
         'is_featured',
-        'is_published'
+        'is_published',
+        'external_link',
+        'image'
     ];
 
-    public function images(){
-        return $this->hasMany(ProjectIMage::class);
-        
+    protected $casts = [
+        'outils' => 'array',  // Important : convertit automatiquement JSON <=> array
+        'is_featured' => 'boolean',
+        'is_published' => 'boolean',
+        'prix' => 'decimal:2',
+    ];
+
+    public function images()
+    {
+        return $this->hasMany(ProjectImage::class);
     }
 }

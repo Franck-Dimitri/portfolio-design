@@ -52,8 +52,8 @@ export default function Footer(){
                                         <h3 className="text-sm font-semibold text-base-primary mb-4 uppercase tracking-wider">Contact</h3>
                                         <ul className="space-y-2 text-sm text-base-muted">
                                             <li>
-                                                <a href="mailto:franckdimitrio009@gmail.com" className="hover:text-primary-500 transition-colors">
-                                                    franckdimitrio009@gmail.com
+                                                <a href="mailto:dims.creative.academy@gmail.com" className="hover:text-primary-500 transition-colors">
+                                                    dims.creative.academy@gmail.com
                                                 </a>
                                             </li>
                                             <li>Yaoundé, Cameroun</li>
@@ -64,7 +64,7 @@ export default function Footer(){
             
                                 <div className="border-t border-base pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <p className="text-xs text-base-subtle">
-                                        © {new Date().getFullYear()} Dim's Design. Tous droits réservés.
+                                        © {new Date().getFullYear()} Dim's Creative Academy. Tous droits réservés.
                                     </p>
                                     <div className="flex items-center gap-4 text-xs text-base-subtle">
                                         <Link href="/mentions-legales" className="hover:text-primary-500 transition-colors">Mentions légales</Link>

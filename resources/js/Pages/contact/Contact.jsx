@@ -3,7 +3,7 @@ import { Link, useForm } from '@inertiajs/react'
 import {
     ArrowRight, Mail, Phone, MapPin, Send, Clock,
     MessageCircle, CheckCircle, Github, Linkedin,
-    Twitter, Instagram, Sparkles
+    Twitter, Instagram, Sparkles,
 } from 'lucide-react'
 import MainLayout from '@/Layouts/MainLayout'
 import SEOHead from '@/Components/SEOHead'
@@ -38,16 +38,14 @@ export default function Contact() {
     }
 
     const contactInfo = [
-        { icon: Mail, label: "Email", value: "franckdimitrio009@gmail.com", link: "mailto:franckdimitrio009@gmail.com" },
+        { icon: Mail, label: "Email", value: "dims.creative.academy@gmail.com", link: "mailto:dims.creative.academy@gmail.com" },
         { icon: Phone, label: "Téléphone", value: "+237 676 383 986", link: "tel:+237676383986" },
         { icon: MapPin, label: "Localisation", value: "Yaoundé, Cameroun", link: null },
         { icon: Clock, label: "Disponibilité", value: "Lun-Sam, 9h-18h", link: null },
     ]
 
     const socialLinks = [
-        { icon: Github, name: "GitHub", url: "https://github.com/" },
-        { icon: Linkedin, name: "LinkedIn", url: "https://linkedin.com/" },
-        { icon: Twitter, name: "Twitter", url: "https://twitter.com/" },
+        { icon: Twitter, name: "Twitter", url: "https://tiktok.com/" },
         { icon: Instagram, name: "Instagram", url: "https://instagram.com/" },
     ]
 
@@ -85,7 +83,7 @@ export default function Contact() {
                         </h1>
                         <p className="text-lg text-base-muted max-w-2xl mx-auto">
                             Vous avez un projet en tête ? Une collaboration à discuter ?
-                            Je suis à votre écoute. Réponse sous 24h.
+                            Nous sommes à votre écoute. Réponse sous 24h.
                         </p>
                     </div>
                 </div>
@@ -122,7 +120,7 @@ export default function Contact() {
 
                             {/* Social Links */}
                             <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-primary-500/5 to-primary-700/5 border border-primary-500/20">
-                                <h3 className="font-semibold mb-4">Suivez-moi</h3>
+                                <h3 className="font-semibold mb-4">Suivez-nous</h3>
                                 <div className="flex gap-3">
                                     {socialLinks.map((social, i) => {
                                         const Icon = social.icon
@@ -151,12 +149,12 @@ export default function Contact() {
 
                         {/* Contact Form */}
                         <div className="card p-6 md:p-8">
-                            <h2 className="text-2xl font-bold mb-6">Envoyez-moi un message</h2>
+                            <h2 className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
                             
                             {formSent && (
                                 <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 flex items-center gap-2">
                                     <CheckCircle size={18} />
-                                    Message envoyé ! Je vous réponds dans les plus brefs délais.
+                                    Message envoyé ! Nous vous répondrons dans les plus brefs délais.
                                 </div>
                             )}
 

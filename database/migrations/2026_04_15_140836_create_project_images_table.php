@@ -21,11 +21,7 @@ return new class extends Migration
             $table->string('path');
 
             // type d’image (très utile pour design)
-            $table->enum('type', [
-                'preview',   // image principale
-                'mockup',    // mise en situation
-                'variation'  // variantes logo/flyer
-            ])->default('preview');
+           $table->string('type')->default('preview'); 
 
             $table->integer('position')->default(0);
 
