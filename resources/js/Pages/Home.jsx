@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/react'
 import {
     ArrowRight, ExternalLink, Sparkles, Eye,
     Layers, Palette, Zap, Award, ChevronDown,
-    Star, ArrowUpRight, Mail, MessageSquare
+    Star, ArrowUpRight, Mail, MessageSquare, Camera, DollarSign
 } from 'lucide-react'
 import MainLayout from '@/Layouts/MainLayout'
 import SEOHead from '@/Components/SEOHead'
@@ -52,86 +52,6 @@ function AnimatedCounter({ value, suffix = '', duration = 1800 }) {
 /* ══════════════════════════════════════════════════════════════
    COMPOSANT – Carte projet
 ══════════════════════════════════════════════════════════════ */
-function ProjectCard({ project, index }) {
-    const [ref, inView] = useInView()
-    return (
-        <article
-            ref={ref}
-            className={`group relative overflow-hidden rounded-2xl bg-elevated border border-base
-                        transition-all duration-500 hover:shadow-orange-md hover:-translate-y-1
-                        ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}
-            style={{ animationDelay: `${index * 120}ms` }}
-        >
-            {/* Thumbnail */}
-            <div className="relative h-56 bg-muted overflow-hidden">
-                {/* Placeholder visuel gradient */}
-                <div
-                    className="absolute inset-0 opacity-60 group-hover:opacity-80 transition-opacity duration-500"
-                    style={{
-                        background: project.gradient,
-                    }}
-                />
-                {/* Overlay au hover */}
-                <div className="absolute inset-0 bg-neutral-950/0 group-hover:bg-neutral-950/30 transition-all duration-500 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex gap-3">
-                        <Link
-                            href={`/projets/${project.slug}`}
-                            className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-neutral-900 hover:bg-primary-500 hover:text-white transition-all duration-200"
-                            aria-label="Voir le projet"
-                        >
-                            <Eye size={16} />
-                        </Link>
-                        {project.url && (
-                            <a
-                                href={project.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-neutral-900 hover:bg-primary-500 hover:text-white transition-all duration-200"
-                                aria-label="Lien externe"
-                            >
-                                <ExternalLink size={16} />
-                            </a>
-                        )}
-                    </div>
-                </div>
-                {/* Badge catégorie */}
-                <span className="absolute top-3 left-3 badge-primary text-xs z-10">
-                    {project.category}
-                </span>
-                {/* Numéro */}
-                <span className="absolute top-3 right-3 text-white/40 font-black text-4xl leading-none select-none">
-                    {String(index + 1).padStart(2, '0')}
-                </span>
-            </div>
-
-            {/* Contenu */}
-            <div className="p-5">
-                <h3 className="font-display font-semibold text-base-primary text-lg leading-snug mb-1 group-hover:text-primary-500 transition-colors duration-200">
-                    {project.title}
-                </h3>
-                <p className="text-sm text-base-muted leading-relaxed mb-4">{project.description}</p>
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5">
-                    {project.tags.map((tag) => (
-                        <span key={tag} className="text-xs px-2 py-0.5 rounded-md bg-muted text-base-muted font-medium">
-                            {tag}
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-            {/* Flèche CTA */}
-            <Link
-                href={`/projets/${project.slug}`}
-                className="absolute bottom-5 right-5 w-8 h-8 rounded-full border border-base flex items-center justify-center text-base-muted
-                           group-hover:bg-primary-500 group-hover:border-primary-500 group-hover:text-white transition-all duration-300"
-                aria-label={`Voir ${project.title}`}
-            >
-                <ArrowUpRight size={14} />
-            </Link>
-        </article>
-    )
-}
 
 /* ══════════════════════════════════════════════════════════════
    COMPOSANT – Carte service
@@ -161,39 +81,6 @@ function ServiceCard({ service, index }) {
         </div>
     )
 }
-
-/* ══════════════════════════════════════════════════════════════
-   DONNÉES
-══════════════════════════════════════════════════════════════ */
-const FEATURED_PROJECTS = [
-    {
-        slug: 'identite-maison-eleve',
-        title: 'Identité Maison Élevée',
-        description: "Refonte complète d'une marque de cosmétiques naturels — du logo au packaging.",
-        category: 'Branding',
-        tags: ['Logo', 'Packaging', 'Typography'],
-        gradient: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #9a3412 100%)',
-        url: null,
-    },
-    {
-        slug: 'campagne-eclatante',
-        title: 'Campagne Éclatante',
-        description: 'Direction artistique d\'une campagne panafricaine pour une startup fintech.',
-        category: 'Direction artistique',
-        tags: ['Affiche', 'Digital', 'Motion'],
-        gradient: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
-        url: 'https://example.com',
-    },
-    {
-        slug: 'manifeste-editorial',
-        title: 'Manifeste Éditorial',
-        description: 'Conception d\'un magazine culturel indépendant, de la grille au dernier folio.',
-        category: 'Éditorial',
-        tags: ['Mise en page', 'Typographie', 'Print'],
-        gradient: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #059669 100%)',
-        url: null,
-    }
-]
 
 const SERVICES = [
     {
@@ -249,7 +136,172 @@ const TESTIMONIALS = [
 /* ══════════════════════════════════════════════════════════════
    PAGE HOME
 ══════════════════════════════════════════════════════════════ */
-export default function Home() {
+
+function ProjectCard({ project, viewMode = 'grid', index = 0 }) {
+    const [isHovered, setIsHovered] = useState(false)
+    const [ref, inView] = useInView()
+
+    if (viewMode === 'list') {
+        return (
+            <article
+                ref={ref}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                className={`group flex flex-col md:flex-row gap-6 p-4 rounded-2xl bg-elevated border border-base hover:shadow-orange-md transition-all duration-300 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}
+                style={{ animationDelay: `${index * 50}ms` }}
+            >
+                <div className="relative md:w-72 h-48 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                    {project.images && project.images[0] ? (
+                        <img
+                            src={`/storage/${project.images[0].path}`}
+                            alt={project.titre}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Camera size={32} className="text-base-muted" />
+                        </div>
+                    )}
+                    {project.is_featured && (
+                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-yellow-500 text-white text-xs font-medium flex items-center gap-1">
+                            <Star size={10} /> Featured
+                        </span>
+                    )}
+                </div>
+                <div className="flex-1 space-y-3">
+                    <div>
+                        <span className="text-xs text-primary-500 font-medium uppercase tracking-wider">
+                            {project.cathegorie}
+                        </span>
+                        <h3 className="text-xl font-bold text-base-primary mt-1 group-hover:text-primary-500 transition-colors">
+                            {project.titre}
+                        </h3>
+                    </div>
+                    <p className="text-base-muted line-clamp-2">{project.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                        {project.outils?.slice(0, 4).map((tool, idx) => (
+                            <span key={idx} className="text-xs px-2 py-1 rounded-md bg-muted text-base-muted">
+                                {tool}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-3">
+                        <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1 text-sm font-semibold text-primary-500">
+                                <DollarSign size={14} />
+                                {parseInt(project.prix).toLocaleString()} FCFA
+                            </span>
+                            <span className="flex items-center gap-1 text-xs text-base-muted">
+                                <Eye size={12} />
+                                {project.views || 0} vues
+                            </span>
+                        </div>
+                        <Link
+                            href={`/projets/${project.slug}`}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-primary-500 hover:text-primary-600"
+                        >
+                            Voir détails <ArrowUpRight size={14} />
+                        </Link>
+                    </div>
+                </div>
+            </article>
+        )
+    }
+
+    // Mode grid
+    return (
+        <>
+         <Link
+                        href={`/projects/${project.slug}`}
+            
+                    >
+                         <article
+            ref={ref}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`group relative overflow-hidden rounded-2xl bg-elevated border border-base transition-all duration-500 hover:shadow-orange-md hover:-translate-y-1 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}
+            style={{ animationDelay: `${index * 100}ms` }}
+        >
+            <div className="relative h-56 bg-gradient-to-br from-primary-500/20 to-primary-700/20 overflow-hidden">
+                {project.images && project.images[0] ? (
+                    <>
+                        <img 
+                            src={`/storage/${project.images[0].path}`}
+                            alt={project.titre}
+                            className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-110' : 'scale-100'}`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    </>
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary-500/10 to-primary-700/10">
+                        <Camera size={40} className="text-primary-500/30" />
+                    </div>
+                )}
+                
+                <div className="absolute top-3 left-3 z-10">
+                    <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-primary-700 text-xs font-semibold">
+                        {project.cathegorie}
+                    </span>
+                </div>
+                
+                {project.is_featured && (
+                    <span className="absolute top-3 right-3 z-10 px-3 py-1 rounded-full bg-yellow-500 text-white text-xs font-semibold flex items-center gap-1">
+                        <Star size={12} /> Featured
+                    </span>
+                )}
+                
+                <div className={`absolute inset-0 bg-black/50 flex items-center justify-center gap-3 transition-all duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                    <Link
+                        href={`/projects/${project.slug}`}
+                        className="w-10 h-10 rounded-full bg-white text-neutral-900 flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all duration-200 transform hover:scale-110"
+                    >
+                        <Eye size={18} />
+                    </Link>
+                </div>
+            </div>
+            
+            <div className="p-5">
+                <h3 className="font-bold text-base-primary text-lg mb-1 group-hover:text-primary-500 transition-colors line-clamp-1">
+                    {project.titre}
+                </h3>
+                <p className="text-sm text-base-muted line-clamp-2 mb-3">
+                    {project.description}
+                </p>
+                
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                    {project.outils?.slice(0, 3).map((tool, idx) => (
+                        <span key={idx} className="text-xs px-2 py-0.5 rounded-md bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400">
+                            {tool}
+                        </span>
+                    ))}
+                    {project.outils?.length > 3 && (
+                        <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-base-muted">
+                            +{project.outils.length - 3}
+                        </span>
+                    )}
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 border-t border-base">
+                    <div className="flex items-center gap-1">
+                        <DollarSign size={12} className="text-primary-500" />
+                        <span className="text-sm font-semibold text-primary-500">
+                            {parseInt(project.prix).toLocaleString()} FCFA
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-base-muted">
+                        <Eye size={10} />
+                        <span>{project.views || 0}</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+                    </Link>
+        </>
+       
+    )
+}
+
+export default function Home( projects = [] ) {
     const [typedText, setTypedText] = useState('')
     const [heroVisible, setHeroVisible] = useState(false)
     const words = ['Designer Graphique', 'Directeur Artistique', 'Visual Storyteller']
@@ -518,12 +570,8 @@ export default function Home() {
                         </Link>
                     </div>
 
-                    {/* Grille projets */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {FEATURED_PROJECTS.map((project, i) => (
-                            <ProjectCard key={project.slug} project={project} index={i} />
-                        ))}
-                    </div>
+                    <ProjectCard key={projects.id} project={projects}/>
+
                 </div>
             </section>
 

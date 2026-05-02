@@ -3,16 +3,15 @@ import { Link, useForm } from '@inertiajs/react'
 import {
     ArrowRight, Mail, Phone, MapPin, Send, Clock,
     MessageCircle, CheckCircle, Github, Linkedin,
-    Twitter, Instagram, Sparkles,
+    Twitter, Instagram, Sparkles, AlertCircle,
 } from 'lucide-react'
 import MainLayout from '@/Layouts/MainLayout'
 import SEOHead from '@/Components/SEOHead'
 
 export default function Contact() {
     const [heroVisible, setHeroVisible] = useState(false)
-    const [formSent, setFormSent] = useState(false)
     
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, recentlySuccessful } = useForm({
         name: '',
         email: '',
         phone: '',
@@ -30,9 +29,7 @@ export default function Contact() {
         e.preventDefault()
         post('/contact', {
             onSuccess: () => {
-                setFormSent(true)
                 reset()
-                setTimeout(() => setFormSent(false), 5000)
             }
         })
     }
@@ -45,8 +42,10 @@ export default function Contact() {
     ]
 
     const socialLinks = [
-        { icon: Twitter, name: "Twitter", url: "https://tiktok.com/" },
+        { icon: Twitter, name: "Twitter", url: "https://twitter.com/" },
         { icon: Instagram, name: "Instagram", url: "https://instagram.com/" },
+        { icon: Github, name: "Github", url: "https://github.com/" },
+        { icon: Linkedin, name: "LinkedIn", url: "https://linkedin.com/" },
     ]
 
     const services = [
@@ -61,7 +60,7 @@ export default function Contact() {
     return (
         <MainLayout>
             <SEOHead 
-                title="Contact"
+                title="Contact | Dim's Creative Academy"
                 description="Contactez-moi pour discuter de votre projet. Disponible pour des collaborations créatives dans le monde entier."
                 url="/contact"
             />
@@ -83,7 +82,7 @@ export default function Contact() {
                         </h1>
                         <p className="text-lg text-base-muted max-w-2xl mx-auto">
                             Vous avez un projet en tête ? Une collaboration à discuter ?
-                            Nous sommes à votre écoute. Réponse sous 24h.
+                            Je suis à votre écoute. Réponse sous 24h.
                         </p>
                     </div>
                 </div>
@@ -120,7 +119,7 @@ export default function Contact() {
 
                             {/* Social Links */}
                             <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-primary-500/5 to-primary-700/5 border border-primary-500/20">
-                                <h3 className="font-semibold mb-4">Suivez-nous</h3>
+                                <h3 className="font-semibold mb-4">Suivez-moi</h3>
                                 <div className="flex gap-3">
                                     {socialLinks.map((social, i) => {
                                         const Icon = social.icon
@@ -151,10 +150,17 @@ export default function Contact() {
                         <div className="card p-6 md:p-8">
                             <h2 className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
                             
-                            {formSent && (
+                            {recentlySuccessful && (
                                 <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 flex items-center gap-2">
                                     <CheckCircle size={18} />
-                                    Message envoyé ! Nous vous répondrons dans les plus brefs délais.
+                                    Message envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.
+                                </div>
+                            )}
+
+                            {errors.error && (
+                                <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center gap-2">
+                                    <AlertCircle size={18} />
+                                    {errors.error}
                                 </div>
                             )}
 
@@ -218,6 +224,7 @@ export default function Contact() {
                                         className="input"
                                         required
                                     />
+                                    {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
                                 </div>
 
                                 <div>
@@ -235,7 +242,7 @@ export default function Contact() {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="btn-primary w-full py-3 group"
+                                    className="btn-primary w-full py-3 group flex items-center justify-center gap-2"
                                 >
                                     {processing ? (
                                         "Envoi en cours..."
@@ -256,14 +263,16 @@ export default function Contact() {
             <section className="section bg-subtle">
                 <div className="container-main px-4">
                     <div className="rounded-2xl overflow-hidden h-80 bg-muted relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center">
-                                <MapPin size={32} className="text-primary-500 mx-auto mb-2" />
-                                <p className="text-base-muted">Yaoundé, Cameroun</p>
-                                <p className="text-sm text-base-muted">Disponible pour des collaborations à distance</p>
-                            </div>
-                        </div>
-                        {/* Intégrez Google Maps si nécessaire */}
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1629905.5208066536!2d10.376889559717772!3d3.848032761665932!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x10a98b3f26be5e11%3A0x3cf8b563cc53d2ab!2sYaound%C3%A9%2C%20Cameroun!5e0!3m2!1sfr!2sfr!4v1699980000000!5m2!1sfr!2sfr"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="Localisation"
+                        ></iframe>
                     </div>
                 </div>
             </section>
@@ -281,13 +290,13 @@ export default function Contact() {
                                 Appelez-moi ou envoyez-moi un message, je vous répondrai dans la journée.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <a href="tel:+2376XXXXXXXX" className="inline-flex items-center gap-2 bg-white text-primary-600 px-8 py-4 rounded-2xl font-semibold hover:bg-primary-50 transition-all">
+                                <a href="tel:+237676383986" className="inline-flex items-center gap-2 bg-white text-primary-600 px-8 py-4 rounded-2xl font-semibold hover:bg-primary-50 transition-all">
                                     <Phone size={18} />
-                                    +237 676 38 39 86
+                                    +237 676 383 986
                                 </a>
-                                <a href="mailto:franckdimitri009@gmail.com" className="inline-flex items-center gap-2 border-2 border-white/30 text-white hover:text-white px-8 py-4 rounded-2xl hover:bg-white/10 transition-all">
+                                <a href="mailto:dims.creative.academy@gmail.com" className="inline-flex items-center gap-2 border-2 border-white/30 text-white hover:text-white px-8 py-4 rounded-2xl hover:bg-white/10 transition-all">
                                     <Mail size={18} />
-                                    franckdimitri009@gmail.com
+                                    dims.creative.academy@gmail.com
                                 </a>
                             </div>
                         </div>

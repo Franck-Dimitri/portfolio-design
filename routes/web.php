@@ -5,6 +5,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\ContactController;
+
+use App\Http\Controllers\PublicProjectController;
+
 
 // Route::get('/laravel', function () {
 //     return Inertia::render('Welcome', [
@@ -15,9 +19,7 @@ use App\Http\Controllers\Admin\ProjectController;
 //     ]);
 // });
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-});
+Route::get('/', [HomeController::class, 'index']);
 
 Route::middleware(['auth', 'verified'], ['role', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
@@ -42,14 +44,14 @@ Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
 
-Route::get('/projets', function () {
-    return Inertia::render('projects/Projet');
-})->name('projets');
+
+Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects.index');
+Route::get('/projects/{slug}', [PublicProjectController::class, 'show'])->name('projects.show');
+
 
 Route::get('/a-propos', function () {
     return Inertia::render('contact/Propos');
 })->name('about');
-
 Route::get('/services', function () {
     return Inertia::render('services/Service');
 })->name('services');
@@ -57,6 +59,8 @@ Route::get('/services', function () {
 Route::get('/contact', function () {
     return Inertia::render('contact/Contact');
 })->name('contact');
+// Route pour le formulaire de contact
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
 Route::get('/blog', function () {
     return Inertia::render('blog/Blog');

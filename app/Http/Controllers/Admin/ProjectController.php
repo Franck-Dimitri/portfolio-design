@@ -31,6 +31,15 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function indexClient()
+    {
+        $projects = Project::with('images')->latest()->get();
+        
+        return inertia('projects/Projet', [
+            'projects' => $projects,
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {
@@ -101,7 +110,7 @@ class ProjectController extends Controller
                     
                     $project->images()->create([
                         'path' => $path,
-                        'type' => 'preview', // Utiliser 'preview' au lieu de 'image'
+                        'type' => 'preview',
                         'position' => $index
                     ]);
                 }
@@ -109,6 +118,83 @@ class ProjectController extends Controller
 
             return redirect()->route('admin.projects.index')
                 ->with('success', 'Project created successfully!');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $project = Project::findOrFail($id);
+
+            // Validation des champs texte
+            $validated = $request->validate([
+                'titre' => 'required|string|max:255',
+                'description' => 'required|string',
+                'cathegorie' => 'required|string',
+                'prix' => 'nullable|numeric',
+                'is_featured' => 'boolean',
+                'is_published' => 'boolean',
+            ]);
+
+            // Traiter les outils
+            $tools = [];
+            if ($request->has('outils')) {
+                $outilsInput = $request->input('outils');
+                if (is_string($outilsInput)) {
+                    $tools = json_decode($outilsInput, true) ?: [];
+                } elseif (is_array($outilsInput)) {
+                    $tools = $outilsInput;
+                }
+            }
+            
+            $tools = array_values(array_filter($tools, fn($tool) => !empty(trim($tool))));
+            
+            if (count($tools) < 3) {
+                return back()->withErrors(['outils' => 'Please add at least 3 tools'])->withInput();
+            }
+
+            // Mettre à jour le projet
+            $project->update([
+                'titre' => $request->titre,
+                'description' => $request->description,
+                'cathegorie' => $request->cathegorie,
+                'prix' => $request->prix ?: null,
+                'is_featured' => (bool) $request->is_featured,
+                'is_published' => (bool) $request->is_published,
+                'outils' => $tools,
+            ]);
+
+            // Gérer les nouvelles images (si des nouvelles ont été uploadées)
+            if ($request->hasFile('images')) {
+                $images = $request->file('images');
+                $imagesArray = is_array($images) ? $images : [$images];
+                
+                // Supprimer les anciennes images
+                foreach ($project->images as $oldImage) {
+                    Storage::disk('public')->delete($oldImage->path);
+                }
+                $project->images()->delete();
+                
+                // Upload des nouvelles images
+                foreach ($imagesArray as $index => $image) {
+                    if ($image->isValid()) {
+                        $filename = time() . '_' . $index . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
+                        $path = $image->storeAs('projects', $filename, 'public');
+                        
+                        $project->images()->create([
+                            'path' => $path,
+                            'type' => 'preview',
+                            'position' => $index
+                        ]);
+                    }
+                }
+            }
+
+            return redirect()->route('admin.projects.index')
+                ->with('success', 'Project updated successfully!');
 
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()])->withInput();

@@ -18,6 +18,7 @@ class Project extends Model
         'is_featured',
         'is_published',
         'external_link',
+        'views',
         'image'
     ];
 
