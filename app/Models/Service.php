@@ -14,13 +14,22 @@ class Service extends Model
         'prix',
         'starting_price',
         'delaie_livraison',
-        'is_active',
+        'outils',        // ← AJOUTER
+        'livrables',     // ← AJOUTER
+        'features',      // ← AJOUTER
         'is_featured',
+        'is_published',
+        'is_active',
     ];
 
     protected $casts = [
         'outils' => 'array',
-        'livrables' => 'array', // ex: ["Design unique", "Livraison rapide", "Fichiers HD"]
+        'livrables' => 'array',
         'features' => 'array',
+        'is_featured' => 'boolean',
+        'is_published' => 'boolean',
+        'is_active' => 'boolean',
+        'prix' => 'integer',
+        'starting_price' => 'integer',
     ];
 }

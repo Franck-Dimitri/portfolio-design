@@ -218,6 +218,7 @@ export default function Index({ projects = [], cathegories = [], editProject = n
         setImagePreviews(newPreviews);
     };
 
+
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this project?')) {
             router.delete(route('admin.projects.destroy', id));
@@ -278,16 +279,16 @@ export default function Index({ projects = [], cathegories = [], editProject = n
                         },
                         {
                             label: 'Visitors',
-                            value: '3,847',
+                            value: '0',
                             icon: Users,
-                            trend: '+8% weekly',
+                            trend: '+0% weekly',
                             color: 'text-blue-500'
                         },
                         {
                             label: 'Growth',
-                            value: '4.2%',
+                            value: '0%',
                             icon: TrendingUp,
-                            trend: '+0.5% boost',
+                            trend: '+0% boost',
                             color: 'text-emerald-500'
                         },
                     ].map((stat, i) => {

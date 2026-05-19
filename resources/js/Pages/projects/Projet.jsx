@@ -211,7 +211,7 @@ export default function Projet({ projects = [], categories = [] }) {
     return (
         <MainLayout>
             <SEOHead 
-                title="Portfolio | Projets de Design Graphique"
+                title="Dim's Creative Academy | Projets de Design Graphique"
                 description="Découvrez mon portfolio de projets en design graphique, branding, UI/UX et direction artistique."
                 url="/projets"
             />

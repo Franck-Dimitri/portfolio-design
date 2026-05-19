@@ -5,7 +5,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ServiceController;
+
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
+
 
 use App\Http\Controllers\PublicProjectController;
 
@@ -19,16 +23,14 @@ use App\Http\Controllers\PublicProjectController;
 //     ]);
 // });
 
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
 
 Route::middleware(['auth', 'verified'], ['role', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/pages/Dashboard');
     });
 
-    Route::get('/services', function () {
-        return Inertia::render('Admin/pages/Services');
-    });
     Route::get('/blogs', function () {
         return Inertia::render('Admin/pages/Blog');
     });
@@ -36,13 +38,13 @@ Route::middleware(['auth', 'verified'], ['role', 'admin'])->prefix('admin')->nam
     Route::get('/packages', function () {
         return Inertia::render('Admin/pages/Package');
     });
+
     Route::resource('projects', ProjectController::class);
+    Route::resource('services', ServiceController::class);
+
 });
 
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('home');
 
 
 Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects.index');

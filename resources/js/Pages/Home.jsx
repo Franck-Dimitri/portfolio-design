@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from '@inertiajs/react'
 import {
-    ArrowRight, ExternalLink, Sparkles, Eye,
-    Layers, Palette, Zap, Award, ChevronDown,
+    ArrowRight, ExternalLink, Sparkles, Eye, ImageIcon, Plus,
+    Layers, Palette, Zap, Award, ChevronDown, Code2, CheckCircle, Pencil, Trash2,
     Star, ArrowUpRight, Mail, MessageSquare, Camera, DollarSign
 } from 'lucide-react'
 import MainLayout from '@/Layouts/MainLayout'
@@ -137,78 +137,10 @@ const TESTIMONIALS = [
    PAGE HOME
 ══════════════════════════════════════════════════════════════ */
 
-function ProjectCard({ project, viewMode = 'grid', index = 0 }) {
+function ProjectCard({ project, index = 0 }) {
     const [isHovered, setIsHovered] = useState(false)
     const [ref, inView] = useInView()
 
-    if (viewMode === 'list') {
-        return (
-            <article
-                ref={ref}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                className={`group flex flex-col md:flex-row gap-6 p-4 rounded-2xl bg-elevated border border-base hover:shadow-orange-md transition-all duration-300 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}
-                style={{ animationDelay: `${index * 50}ms` }}
-            >
-                <div className="relative md:w-72 h-48 rounded-xl overflow-hidden bg-muted flex-shrink-0">
-                    {project.images && project.images[0] ? (
-                        <img
-                            src={`/storage/${project.images[0].path}`}
-                            alt={project.titre}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <Camera size={32} className="text-base-muted" />
-                        </div>
-                    )}
-                    {project.is_featured && (
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-yellow-500 text-white text-xs font-medium flex items-center gap-1">
-                            <Star size={10} /> Featured
-                        </span>
-                    )}
-                </div>
-                <div className="flex-1 space-y-3">
-                    <div>
-                        <span className="text-xs text-primary-500 font-medium uppercase tracking-wider">
-                            {project.cathegorie}
-                        </span>
-                        <h3 className="text-xl font-bold text-base-primary mt-1 group-hover:text-primary-500 transition-colors">
-                            {project.titre}
-                        </h3>
-                    </div>
-                    <p className="text-base-muted line-clamp-2">{project.description}</p>
-                    <div className="flex flex-wrap gap-2">
-                        {project.outils?.slice(0, 4).map((tool, idx) => (
-                            <span key={idx} className="text-xs px-2 py-1 rounded-md bg-muted text-base-muted">
-                                {tool}
-                            </span>
-                        ))}
-                    </div>
-                    <div className="flex items-center justify-between pt-3">
-                        <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1 text-sm font-semibold text-primary-500">
-                                <DollarSign size={14} />
-                                {parseInt(project.prix).toLocaleString()} FCFA
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-base-muted">
-                                <Eye size={12} />
-                                {project.views || 0} vues
-                            </span>
-                        </div>
-                        <Link
-                            href={`/projets/${project.slug}`}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-primary-500 hover:text-primary-600"
-                        >
-                            Voir détails <ArrowUpRight size={14} />
-                        </Link>
-                    </div>
-                </div>
-            </article>
-        )
-    }
-
-    // Mode grid
     return (
         <>
          <Link
@@ -301,7 +233,7 @@ function ProjectCard({ project, viewMode = 'grid', index = 0 }) {
     )
 }
 
-export default function Home( projects = [] ) {
+export default function Home({ projects = [] }) {
     const [typedText, setTypedText] = useState('')
     const [heroVisible, setHeroVisible] = useState(false)
     const words = ['Designer Graphique', 'Directeur Artistique', 'Visual Storyteller']
@@ -569,9 +501,23 @@ export default function Home( projects = [] ) {
                             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
                         </Link>
                     </div>
+ {/* PROJECTS GRID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {projects.length === 0 && (
+                            <div className="card p-10 text-center col-span-full">
+                                <ImageIcon className="mx-auto text-base-muted" size={40} />
+                                <p className="mt-3 text-base-muted">
+                                    No projects yet. Please reload.
+                                </p>
+                            </div>
+                        )}
 
-                    <ProjectCard key={projects.id} project={projects}/>
+                        {projects.map((project) => (
+                            <ProjectCard key={project.id} project={project}/>
+                        ))}
 
+                        
+                    </div>
                 </div>
             </section>
 
@@ -703,5 +649,5 @@ export default function Home( projects = [] ) {
                 </div>
             </section>
         </MainLayout>
-    )
+    );
 }
