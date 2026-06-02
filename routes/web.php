@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeController;
 
 
 use App\Http\Controllers\PublicProjectController;
+use App\Http\Controllers\PublicServiceController;
 
 
 // Route::get('/laravel', function () {
@@ -26,7 +27,7 @@ use App\Http\Controllers\PublicProjectController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
-Route::middleware(['auth', 'verified'], ['role', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/pages/Dashboard');
     });
@@ -50,14 +51,12 @@ Route::middleware(['auth', 'verified'], ['role', 'admin'])->prefix('admin')->nam
 Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects.index');
 Route::get('/projects/{slug}', [PublicProjectController::class, 'show'])->name('projects.show');
 
+Route::get('/services', [PublicServiceController::class, 'index'])->name('services.index');
+Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('services.show');
 
 Route::get('/a-propos', function () {
     return Inertia::render('contact/Propos');
 })->name('about');
-Route::get('/services', function () {
-    return Inertia::render('services/Service');
-})->name('services');
-
 Route::get('/contact', function () {
     return Inertia::render('contact/Contact');
 })->name('contact');

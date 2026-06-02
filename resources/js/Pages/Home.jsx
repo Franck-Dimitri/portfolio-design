@@ -65,14 +65,16 @@ function ServiceCard({ service, index }) {
                         ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}
             style={{ animationDelay: `${index * 100}ms` }}
         >
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center
-                            bg-[var(--color-accent-subtle)] text-primary-500
-                            group-hover:bg-primary-500 group-hover:text-white
-                            transition-all duration-300`}>
-                {service.icon}
-            </div>
+            {service.icon && (
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center
+                                bg-[var(--color-accent-subtle)] text-primary-500
+                                group-hover:bg-primary-500 group-hover:text-white
+                                transition-all duration-300`}>
+                    {service.icon}
+                </div>
+            )}
             <div>
-                <h3 className="font-display font-semibold text-base-primary mb-2">{service.title}</h3>
+                <h3 className="font-display font-semibold text-base-primary mb-2">{service.title || service.titre}</h3>
                 <p className="text-sm text-base-muted leading-relaxed">{service.description}</p>
             </div>
             <div className="mt-auto pt-2 flex items-center gap-1.5 text-xs font-medium text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -233,7 +235,7 @@ function ProjectCard({ project, index = 0 }) {
     )
 }
 
-export default function Home({ projects = [] }) {
+export default function Home({ projects = [], services = [] }) {
     const [typedText, setTypedText] = useState('')
     const [heroVisible, setHeroVisible] = useState(false)
     const words = ['Designer Graphique', 'Directeur Artistique', 'Visual Storyteller']
@@ -541,10 +543,21 @@ export default function Home({ projects = [] }) {
                         </p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {SERVICES.map((service, i) => (
+                        {(services.length > 0 ? services : SERVICES).map((service, i) => (
                             <ServiceCard key={i} service={service} index={i} />
                         ))}
                     </div>
+                    {services.length > 0 && (
+                        <div className="text-center mt-10">
+                            <Link 
+                                href={route('services.index')} 
+                                className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold group"
+                            >
+                                Voir tous les services
+                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </section>
 

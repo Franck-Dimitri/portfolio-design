@@ -98,12 +98,22 @@ const PROCESS_STEPS = [
     }
 ]
 
-export default function Service() {
+export default function Service({ services = [] }) {
     const [heroVisible, setHeroVisible] = useState(false)
     useEffect(() => {
         const t = setTimeout(() => setHeroVisible(true), 50)
         return () => clearTimeout(t)
     }, [])
+
+    // Formater les services depuis la BDD pour l'affichage
+    const displayServices = services.map(service => ({
+        title: service.titre,
+        description: service.description,
+        features: service.features || [],
+        price: service.starting_price ? `À partir de ${service.starting_price.toLocaleString('fr-FR')} FCFA` : 'Sur devis',
+        duration: service.delaie_livraison ? `${service.delaie_livraison}` : 'À convenir',
+        slug: service.slug,
+    }))
 
     return (
         <MainLayout>
@@ -140,12 +150,12 @@ export default function Service() {
             <section className="section">
                 <div className="container-main px-4">
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {SERVICES_LIST.map((service, i) => {
+                        {(displayServices.length > 0 ? displayServices : SERVICES_LIST).map((service, i) => {
                             const Icon = service.icon
                             return (
                                 <div key={i} className="card-hover p-6 group animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
                                     <div className="w-12 h-12 rounded-xl bg-primary-500/10 flex items-center justify-center mb-4 group-hover:bg-primary-500 transition-colors">
-                                        <Icon className="text-primary-500 group-hover:text-white transition-colors" size={22} />
+                                        {Icon && <Icon className="text-primary-500 group-hover:text-white transition-colors" size={22} />}
                                     </div>
                                     <h3 className="text-xl font-bold mb-2">{service.title}</h3>
                                     <p className="text-base-muted text-sm mb-4">{service.description}</p>
