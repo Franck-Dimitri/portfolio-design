@@ -33,7 +33,7 @@ return new class extends Migration
 
             $table->integer('starting_price')->nullable();
 
-            $table->integer('delaie_livraison')->nullable();
+            $table->string('delaie_livraison')->nullable();
 
             $table->json('outils')->nullable();
             $table->json('livrables')->nullable();

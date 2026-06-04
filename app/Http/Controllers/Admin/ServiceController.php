@@ -28,17 +28,45 @@ class ServiceController extends Controller
                 'prix' => 'nullable|numeric',
                 'starting_price' => 'nullable|numeric',
                 'delaie_livraison' => 'nullable|string|max:255',
-                'outils' => 'nullable|string',  // Changé de json à string
-                'livrables' => 'nullable|string', // Changé de json à string
-                'features' => 'nullable|string', // Changé de json à string
+                'outils' => ['nullable', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail('Le champ ' . $attribute . ' doit être une chaîne ou un tableau.');
+                    }
+                }],
+                'outils.*' => 'string',
+                'livrables' => ['nullable', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail('Le champ ' . $attribute . ' doit être une chaîne ou un tableau.');
+                    }
+                }],
+                'livrables.*' => 'string',
+                'features' => ['nullable', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail('Le champ ' . $attribute . ' doit être une chaîne ou un tableau.');
+                    }
+                }],
+                'features.*' => 'string',
                 'is_featured' => 'boolean',
                 'is_active' => 'boolean', // Changé de is_published à is_active
             ]);
 
-            // Décoder les JSON (maintenant ce sont des strings)
-            $outils = json_decode($request->outils, true) ?: [];
-            $livrables = json_decode($request->livrables, true) ?: [];
-            $features = json_decode($request->features, true) ?: [];
+            $outils = $request->input('outils', []);
+            if (is_string($outils)) {
+                $outils = json_decode($outils, true) ?: [];
+            }
+            $outils = is_array($outils) ? $outils : [];
+
+            $livrables = $request->input('livrables', []);
+            if (is_string($livrables)) {
+                $livrables = json_decode($livrables, true) ?: [];
+            }
+            $livrables = is_array($livrables) ? $livrables : [];
+
+            $features = $request->input('features', []);
+            if (is_string($features)) {
+                $features = json_decode($features, true) ?: [];
+            }
+            $features = is_array($features) ? $features : [];
 
             // Filtrer les valeurs vides
             $outils = array_values(array_filter($outils, fn($item) => !empty(trim($item))));
@@ -92,17 +120,45 @@ class ServiceController extends Controller
                 'prix' => 'nullable|numeric',
                 'starting_price' => 'nullable|numeric',
                 'delaie_livraison' => 'nullable|string|max:255',
-                'outils' => 'nullable|string', // Changé de json à string
-                'livrables' => 'nullable|string', // Changé de json à string
-                'features' => 'nullable|string', // Changé de json à string
+                'outils' => ['nullable', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail('Le champ ' . $attribute . ' doit être une chaîne ou un tableau.');
+                    }
+                }],
+                'outils.*' => 'string',
+                'livrables' => ['nullable', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail('Le champ ' . $attribute . ' doit être une chaîne ou un tableau.');
+                    }
+                }],
+                'livrables.*' => 'string',
+                'features' => ['nullable', function ($attribute, $value, $fail) {
+                    if (!is_string($value) && !is_array($value)) {
+                        $fail('Le champ ' . $attribute . ' doit être une chaîne ou un tableau.');
+                    }
+                }],
+                'features.*' => 'string',
                 'is_featured' => 'boolean',
                 'is_active' => 'boolean', // Changé de is_published à is_active
             ]);
 
-            // Décoder les JSON
-            $outils = json_decode($request->outils, true) ?: [];
-            $livrables = json_decode($request->livrables, true) ?: [];
-            $features = json_decode($request->features, true) ?: [];
+            $outils = $request->input('outils', []);
+            if (is_string($outils)) {
+                $outils = json_decode($outils, true) ?: [];
+            }
+            $outils = is_array($outils) ? $outils : [];
+
+            $livrables = $request->input('livrables', []);
+            if (is_string($livrables)) {
+                $livrables = json_decode($livrables, true) ?: [];
+            }
+            $livrables = is_array($livrables) ? $livrables : [];
+
+            $features = $request->input('features', []);
+            if (is_string($features)) {
+                $features = json_decode($features, true) ?: [];
+            }
+            $features = is_array($features) ? $features : [];
 
             // Filtrer les valeurs vides
             $outils = array_values(array_filter($outils, fn($item) => !empty(trim($item))));

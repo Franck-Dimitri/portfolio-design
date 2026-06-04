@@ -13,9 +13,7 @@ export function Topbar(){
                             Admin Panel
                         </div>
 
-                        <button className="bg-primary-500/10 text-primary-500 px-4 py-1">
-                            Dim's Creative Academy
-                        </button>
+                      
                         <ThemeSelector />
                     </header>
         </>

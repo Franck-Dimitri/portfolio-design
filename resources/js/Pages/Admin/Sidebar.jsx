@@ -57,7 +57,7 @@ export function Sidebar() {
                 </button>
             </div>
 
-            {/* NAVIGATION */}Design
+            {/* NAVIGATION */}
             <nav className="flex flex-col gap-3 p-3">
 
                 {NAV_LINKS.map((link) => {

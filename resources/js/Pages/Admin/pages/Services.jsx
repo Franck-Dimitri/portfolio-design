@@ -98,24 +98,23 @@ export default function Index({ services = [] }) {
 
         setIsSubmitting(true);
 
-        const formData = new FormData();
-        formData.append('titre', data.titre);
-        formData.append('description', data.description);
-        formData.append('cathegorie', data.cathegorie);
-        formData.append('prix', data.prix || '');
-        formData.append('starting_price', data.starting_price || '');
-        formData.append('delaie_livraison', data.delaie_livraison || '');
-        formData.append('outils', JSON.stringify(nonEmptyTools));
-        formData.append('livrables', JSON.stringify(nonEmptyLivrables));
-        formData.append('features', JSON.stringify(nonEmptyFeatures));
-        formData.append('is_featured', data.is_featured ? '1' : '0');
-        formData.append('is_active', data.is_active ? '1' : '0');
+        const payload = {
+            titre: data.titre,
+            description: data.description,
+            cathegorie: data.cathegorie,
+            prix: data.prix || null,
+            starting_price: data.starting_price || null,
+            delaie_livraison: data.delaie_livraison || null,
+            outils: nonEmptyTools,
+            livrables: nonEmptyLivrables,
+            features: nonEmptyFeatures,
+            is_featured: data.is_featured,
+            is_active: data.is_active,
+        };
 
         if (editMode) {
-            formData.append('_method', 'PUT');
-            post(route('admin.services.update', currentServiceId), {
-                data: formData,
-                forceFormData: true,
+            put(route('admin.services.update', currentServiceId), {
+                data: payload,
                 onSuccess: () => {
                     closeModal();
                     router.reload();
@@ -127,8 +126,7 @@ export default function Index({ services = [] }) {
             });
         } else {
             post(route('admin.services.store'), {
-                data: formData,
-                forceFormData: true,
+                data: payload,
                 onSuccess: () => {
                     closeModal();
                     router.reload();
@@ -236,7 +234,7 @@ export default function Index({ services = [] }) {
                             setData('outils', ['', '', '']);
                             setData('livrables', ['', '']);
                             setData('features', ['', '', '']);
-                            setData('is_published', true);
+                            setData('is_active', true);
                             setShowModal(true);
                         }}
                         className="btn btn-primary btn-lg gap-2"
@@ -481,8 +479,8 @@ export default function Index({ services = [] }) {
                                                 <label className="flex items-center gap-3 cursor-pointer group">
                                                     <input
                                                         type="checkbox"
-                                                        checked={data.is_published}
-                                                        onChange={(e) => setData('is_published', e.target.checked)}
+                                                        checked={data.is_active}
+                                                        onChange={(e) => setData('is_active', e.target.checked)}
                                                         className="w-4 h-4 rounded border-base text-primary-500"
                                                     />
                                                     <span className="text-sm text-base-primary flex items-center gap-2">

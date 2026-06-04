@@ -417,14 +417,14 @@ export default function Index({ projects = [], cathegories = [], editProject = n
             {/* MODAL FORM */}
             {showModal && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                    <div className="flex  items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
                         <div className="fixed inset-0 transition-opacity" onClick={closeModal}>
                             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
                         </div>
 
                         <div className="inline-block transform overflow-hidden rounded-2xl bg-base text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl sm:align-middle">
                             {/* Modal Header */}
-                            <div className="bg-gradient-orange-soft border-b border-base px-6 py-5">
+                            <div className="sticky top-0 z-10 bg-base border-b border-base px-6 py-5">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="text-2xl font-bold text-base-primary flex items-center gap-2">
@@ -445,7 +445,7 @@ export default function Index({ projects = [], cathegories = [], editProject = n
                             </div>
 
                             {/* Modal Body */}
-                            <div className="px-6 py-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+                            <div className="px-6 py-6  ">
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Left Column */}
@@ -554,9 +554,9 @@ export default function Index({ projects = [], cathegories = [], editProject = n
                                     </div>
 
                                     {/* Modal Footer */}
-                                    <div className="flex justify-end gap-3 pt-5 border-t border-base">
+                                    <div className="sticky bottom-0 bg-base border-t border-base px-6 py-4 flex justify-end gap-3">
                                         <button type="button" onClick={closeModal} className="btn btn-secondary">Cancel</button>
-                                        <button type="submit" disabled={processing || isSubmitting} className="btn btn-primary min-w-[120px] gap-2">
+                                        <button type="submit" from="project-form" disabled={processing || isSubmitting} className="btn btn-primary min-w-[120px] gap-2">
                                             {(processing || isSubmitting) ? (
                                                 <><Loader2 size={16} className="animate-spin" /> {editMode ? 'Updating...' : 'Creating...'}</>
                                             ) : (
