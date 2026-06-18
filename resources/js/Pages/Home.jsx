@@ -288,158 +288,136 @@ export default function Home({ projects = [], services = [] }) {
             {/* ══════════════════════════════════════════════════
                 § 1 – HERO
             ══════════════════════════════════════════════════ */}
-            <section className="relative min-h-[calc(100svh-64px)] flex flex-col items-center justify-center overflow-hidden section">
-
-                {/* ── Fond décoratif ─────────────────────────────── */}
-                <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" aria-hidden="true" />
-
-                {/* Orbe orange haut-droite */}
-                <div
-                    className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10 pointer-events-none animate-blob"
-                    style={{ background: 'radial-gradient(circle, #f97316 0%, #ea580c 60%, transparent 100%)' }}
-                    aria-hidden="true"
-                />
-                {/* Orbe orange bas-gauche */}
-                <div
-                    className="absolute -bottom-48 -left-24 w-80 h-80 rounded-full opacity-8 pointer-events-none animate-blob"
-                    style={{ animationDelay: '3s', background: 'radial-gradient(circle, #fb923c 0%, transparent 70%)' }}
-                    aria-hidden="true"
-                />
-
-                <div className="container-main relative z-10 flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-
-                    {/* ── Colonne texte ─────────────────────────────── */}
-                    <div className="flex-1 text-center lg:text-left">
-
-                        {/* Badge disponibilité */}
-                        <div className={`inline-flex items-center gap-2 mb-6 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                            <span className="badge-primary">
+            <section className="relative min-h-[90vh] flex items-center pt-20 pb-12 overflow-hidden">
+                <div className="container-main px-4 sm:px-6">
+                    <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+                        
+                        {/* ── Colonne Texte ─────────────────────────────────────── */}
+                        <div className="text-center lg:text-left space-y-4 md:space-y-6">
+                            {/* Badge */}
+                            <div className={`inline-flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-full bg-primary-100 dark:bg-primary-950/50 border border-primary-200/50 dark:border-primary-800/50 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                Disponible pour projets
-                            </span>
-                        </div>
-
-                        {/* Titre principal */}
-                        <h1 className={`mb-4 transition-all duration-700 delay-100 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            Nous créeons des{' '}
-                            <span className="text-gradient">identités</span>
-                            <br />
-                            qui marquent.
-                        </h1>
-
-                        {/* Sous-titre typer */}
-                        <div className={`h-8 mb-6 transition-all duration-70000 delay-70000 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            <p className="text-xl font-medium text-base-secondary">
-                                {typedText}
-                                <span className="animate-blink text-primary-500 ml-0.5">|</span>
-                            </p>
-                        </div>
-
-                        {/* Description */}
-                        <p className={`text-base text-base-muted leading-relaxed max-w-lg mx-auto lg:mx-0 mb-10 transition-all duration-700 delay-300 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            Nous transforme des idées en systèmes visuels percutants —
-                            du logo au motion, du print au digital.
-                            Chaque projet est une histoire à raconter visuellement.
-                        </p>
-
-                        {/* CTA */}
-                        <div className={`flex flex-col sm:flex-row gap-3 justify-center lg:justify-start transition-all duration-700 delay-[400ms] ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            <Link href="/projets" className="btn-primary btn-lg group">
-                                Voir mes projets
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
-                            </Link>
-                            <Link href="/contact" className="btn-secondary btn-lg">
-                                Parlons de votre projet
-                            </Link>
-                        </div>
-
-                        {/* Social proof rapide */}
-                        <div className={`flex items-center gap-3 mt-8 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            {/* Avatars clients */}
-                            <div className="flex -space-x-2">
-                                {['MD','KM','SL','OT'].map((initials, i) => (
-                                    <div
-                                        key={i}
-                                        className="w-8 h-8 rounded-full border-2 border-[var(--bg-base)] flex items-center justify-center text-xs font-bold text-white"
-                                        style={{ backgroundColor: ['#f97316','#ea580c','#c2410c','#9a3412'][i] }}
-                                    >
-                                        {initials}
-                                    </div>
-                                ))}
+                                <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
+                                    Disponible pour projets
+                                </span>
                             </div>
-                            <div className="text-sm">
-                                <div className="flex items-center gap-0.5">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} size={12} className="text-primary-500 fill-primary-500" />
+
+                            {/* Titre */}
+                            <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight transition-all duration-700 delay-100 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                                Nous créons des{' '}
+                                <span className="text-gradient">identités</span>
+                                <br className="hidden sm:block" />
+                                qui marquent.
+                            </h1>
+
+                            {/* Typed text */}
+                            <div className={`h-8 transition-all duration-700 delay-200 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                                <p className="text-base sm:text-lg md:text-xl font-medium text-base-secondary">
+                                    {typedText}
+                                    <span className="animate-blink text-primary-500 ml-0.5">|</span>
+                                </p>
+                            </div>
+
+                            {/* Description */}
+                            <p className={`text-sm sm:text-base text-base-muted leading-relaxed max-w-lg mx-auto lg:mx-0 transition-all duration-700 delay-300 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                                Nous transformons des idées en systèmes visuels percutants —
+                                du logo au motion, du print au digital.
+                                Chaque projet est une histoire à raconter visuellement.
+                            </p>
+
+                            {/* CTA Buttons */}
+                            <div className={`flex flex-col sm:flex-row gap-3 justify-center lg:justify-start transition-all duration-700 delay-[400ms] ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                                <Link href="/projets" className="btn btn-primary w-full sm:w-auto justify-center group text-sm sm:text-base">
+                                    Voir mes projets
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
+                                </Link>
+                                <Link href="/contact" className="btn btn-secondary w-full sm:w-auto justify-center text-sm sm:text-base">
+                                    Parlons de votre projet
+                                </Link>
+                            </div>
+
+                            {/* Social proof */}
+                            <div className={`flex flex-wrap items-center gap-4 md:gap-6 mt-6 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                                {/* Avatars */}
+                                <div className="flex -space-x-2">
+                                    {['MD', 'KM', 'SL', 'OT'].map((initials, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-8 h-8 rounded-full border-2 border-[var(--bg-base)] flex items-center justify-center text-xs font-bold text-white"
+                                            style={{ backgroundColor: ['#f97316', '#ea580c', '#c2410c', '#9a3412'][i] }}
+                                        >
+                                            {initials}
+                                        </div>
                                     ))}
                                 </div>
-                                <span className="text-base-muted text-xs">28+ clients satisfaits</span>
+                                <div className="text-left">
+                                    <div className="flex items-center gap-0.5">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} size={14} className="text-primary-500 fill-primary-500" />
+                                        ))}
+                                    </div>
+                                    <span className="text-xs text-base-muted">28+ clients satisfaits</span>
+                                </div>
+                            </div>
+
+                            {/* Contacts */}
+                            <div className={`flex flex-wrap items-center gap-3 md:gap-4 mt-4 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                                <a href="mailto:dims.creative.academy@gmail.com" className="group hover:text-primary-500 transition-colors flex items-center gap-2 text-sm">
+                                    <div className="border border-primary-400 p-1.5 md:p-2 rounded-md text-primary-400 group-hover:bg-primary-500/10 transition-colors">
+                                        <Mail size={16} className="md:size-[17]" />
+                                    </div>
+                                    <span className="hidden sm:inline">dims.creative.academy@gmail.com</span>
+                                    <span className="sm:hidden text-xs">Email</span>
+                                </a>
+
+                                <a href="https://wa.me/676383986" className="group hover:text-primary-500 transition-colors flex items-center gap-2 text-sm">
+                                    <div className="border border-primary-400 p-1.5 md:p-2 rounded-md text-primary-400 group-hover:bg-primary-500/10 transition-colors">
+                                        <MessageSquare size={16} className="md:size-[17]" />
+                                    </div>
+                                    <span>WhatsApp</span>
+                                </a>
                             </div>
                         </div>
-                        <div className={`flex items-center gap-3 mt-8 justify-center lg:justify-start transition-all duration-700 delay-500 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                            
-                            <a href="mailto:dims.creative.academy@gmail.com" className="group hover:text-primary-500 transition-colors flex justify-center items-center gap-3">
-                                <div className='border border-primary-400 p-2 rounded-md text-primary-400'>
-                                    <Mail size={17}/>
-                                </div>
-                                dims.creative.academy@gmail.com
-                            </a>
 
-
-                            <a href="https://wa.me/676383986" className="group hover:text-primary-500 transition-colors flex justify-center items-center gap-3">
-                                 <div className='border border-primary-400 p-2 rounded-md text-primary-400'>
-                                    <MessageSquare size={17}/>
-                                </div>
-                                whatsApp
-                            </a>
-                           
-                        </div>
-                    </div>
-
-                 {/* ── Colonne visuelle ──────────────────────────── */}
-                    <div className={`relative shrink-0 transition-all duration-1000 delay-200 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-
-                        {/* Cadre principal */}
-                        <div className="relative w-72 h-72 sm:w-80 sm:h-80">
-
-                            {/* Blob décoratif derrière */}
-                            <div
-                                className="absolute inset-0 opacity-20 animate-blob rounded-full"
-                                style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
-                                aria-hidden="true"
-                            />
-
-                            {/* Cadre photo corrigé */}
-                            <div className="relative z-10 w-full h-full rounded-3xl overflow-hidden border-2 border-[var(--border-base)] shadow-orange-lg bg-gradient-to-br from-primary-100 to-primary-50">
+                        {/* ── Colonne Visuelle ───────────────────────────────────── */}
+                        <div className={`relative flex justify-center transition-all duration-1000 delay-200 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                            <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96">
                                 
-                                {/* Si MonImage existe, on l'affiche en plein écran dans le cadre */}
-                                
+                                {/* Blob décoratif */}
+                                <div
+                                    className="absolute inset-0 opacity-20 animate-blob rounded-full"
+                                    style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
+                                    aria-hidden="true"
+                                />
+
+                                {/* Cadre photo */}
+                                <div className="relative z-10 w-full h-full rounded-3xl overflow-hidden border-2 border-[var(--border-base)] shadow-orange-lg bg-gradient-to-br from-primary-100 to-primary-50">
                                     <img 
                                         src="/image/brand-logo.jpg" 
                                         alt="Franck Dimitri" 
                                         className="w-full h-full object-cover object-center" 
                                     />
-    
-                            </div>
+                                </div>
 
-                            {/* Badge flottant – expérience */}
-                            <div className="absolute -left-6 top-1/4 glass rounded-2xl px-3 py-2 shadow-dark-sm animate-float z-20">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-primary-500"><Award size={14} /></span>
-                                    <div>
-                                        <p className="text-xs font-bold text-base-primary leading-none">Brand</p>
-                                        <p className="text-[10px] text-base-muted whitespace-nowrap">d'expérience</p>
+                                {/* Badge flottant - Expérience */}
+                                <div className="absolute -left-4 md:-left-6 top-1/4 glass rounded-2xl px-2 py-1.5 md:px-3 md:py-2 shadow-dark-sm animate-float z-20">
+                                    <div className="flex items-center gap-1.5 md:gap-2">
+                                        <Award size={14} className="text-primary-500 md:size-[16]" />
+                                        <div>
+                                            <p className="text-xs font-bold text-base-primary leading-none">Brand</p>
+                                            <p className="text-[10px] text-base-muted whitespace-nowrap">d'expérience</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Badge flottant – projets */}
-                            <div className="absolute -right-6 bottom-1/4 glass rounded-2xl px-3 py-2 shadow-dark-sm animate-float z-20" style={{ animationDelay: '1.5s' }}>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-primary-500"><Sparkles size={14} /></span>
-                                    <div>
-                                        <p className="text-xs font-bold text-base-primary leading-none">47+</p>
-                                        <p className="text-[10px] text-base-muted whitespace-nowrap">projets finis</p>
+                                {/* Badge flottant - Projets */}
+                                <div className="absolute -right-4 md:-right-6 bottom-1/4 glass rounded-2xl px-2 py-1.5 md:px-3 md:py-2 shadow-dark-sm animate-float z-20" style={{ animationDelay: '1.5s' }}>
+                                    <div className="flex items-center gap-1.5 md:gap-2">
+                                        <Sparkles size={14} className="text-primary-500 md:size-[16]" />
+                                        <div>
+                                            <p className="text-xs font-bold text-base-primary leading-none">47+</p>
+                                            <p className="text-[10px] text-base-muted whitespace-nowrap">projets finis</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -447,8 +425,8 @@ export default function Home({ projects = [], services = [] }) {
                     </div>
                 </div>
 
-                {/* Scroll indicator */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-base-subtle animate-bounce">
+                {/* Scroll indicator - Masqué sur mobile */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-base-subtle animate-bounce hidden sm:flex">
                     <span className="text-xs uppercase tracking-widest">Scroll</span>
                     <ChevronDown size={16} />
                 </div>

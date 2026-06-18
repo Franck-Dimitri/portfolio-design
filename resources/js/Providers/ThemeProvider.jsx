@@ -4,12 +4,8 @@ import { createContext, useContext, useEffect, useState } from 'react'
 /* ═══════════════════════════════════════════════════════════════
    THEME CONTEXT
    ═══════════════════════════════════════════════════════════════ */
-const ThemeContext = createContext({
-    theme: 'light',
-    toggleTheme: () => {},
-    setTheme: () => {},
-    isDark: false,
-})
+// Par défaut null pour détecter l'utilisation hors Provider
+const ThemeContext = createContext(null)
 
 /* ═══════════════════════════════════════════════════════════════
    THEME PROVIDER
