@@ -33,7 +33,7 @@ use App\Http\Controllers\CinetPayWebhookController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/pages/Dashboard');
     });
@@ -75,6 +75,7 @@ Route::get('/projects/{slug}', [PublicProjectController::class, 'show'])->name('
 
 Route::get('/services', [PublicServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('services.show');
+
 // ── Pages publiques ───────────────────────────────────────────
 // routes/web.php
 Route::prefix('packages')->name('packages.')->group(function () {
@@ -104,34 +105,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-
-// ── Webhook CinetPay (pas de CSRF) ───────────────────────────
-Route::post('/webhooks/cinetpay', [CinetPayWebhookController::class, 'handle'])
-    ->name('cinetpay.webhook')
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
- 
-
-
-// ── Souscription + paiement (auth requis) ────────────────────
-Route::middleware(['auth'])->group(function () {
- 
-    Route::post('/packages/{package:slug}/souscrire',
-        [PackagePublicController::class, 'souscrire']
-    )->name('packages.souscrire');
- 
-    Route::get('/paiement/retour/{reference}',
-        [PackagePublicController::class, 'retourPaiement']
-    )->name('souscriptions.retour');
- 
-    // ── Espace client ─────────────────────────────────────────
-    Route::prefix('mon-espace')->name('client.')->group(function () {
-        Route::get('/commandes', [PackagePublicController::class, 'mesCommandes'])
-            ->name('commandes.index');
-        Route::get('/commandes/{souscription}', [PackagePublicController::class, 'maCommande'])
-            ->name('commandes.show');
-    });
 });
 
 

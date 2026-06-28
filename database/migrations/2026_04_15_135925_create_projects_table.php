@@ -33,6 +33,8 @@ return new class extends Migration
             $table->json('outils')->nullable();
             $table->decimal('prix', 10, 2)->nullable();
             $table->string('image')->nullable();
+            $table->integer('views')->default(0)->after('is_published');
+
             
             $table->boolean('is_featured')->default(false);
             $table->boolean('is_published')->default(true);
