@@ -250,7 +250,7 @@ export default function PackageDetail({ package: pkg, relatedPackages = [] }) {
 
                                 <div className="mt-6 space-y-3">
                                     <Link
-                                        href={pkg.is_active ? `/packages/${pkg.slug}/souscrire` : '#'}
+                                        href={pkg.is_active ? route('subscription.create.package', { slug: pkg.slug }) : '#'}
                                         className={`btn ${pkg.is_active ? 'btn-primary' : 'btn-secondary opacity-50 cursor-not-allowed'} w-full justify-center text-center py-4 text-base font-semibold group transition-all duration-300`}
                                         onClick={(e) => !pkg.is_active && e.preventDefault()}
                                     >

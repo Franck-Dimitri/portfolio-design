@@ -12,7 +12,10 @@ use App\Http\Controllers\HomeController;
 
 
 use App\Http\Controllers\PublicProjectController;
+
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PublicServiceController;
+use App\Http\Controllers\PaymentController;
 
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\SouscriptionController;
@@ -33,7 +36,7 @@ use App\Http\Controllers\CinetPayWebhookController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
-Route::middleware(['auth', 'verified', 'role'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/pages/Dashboard');
     });
@@ -69,6 +72,11 @@ Route::middleware(['auth', 'verified', 'role'])->prefix('admin')->name('admin.')
 
 
 
+    // Route protégée par le middleware auth pour s'assurer que l'utilisateur est connecté
+    Route::middleware(['auth'])->group(function () {
+        Route::post('/payment/process/{subscription}', [PaymentController::class, 'processPayment'])
+            ->name('payment.process');
+    });
 
 Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects.index');
 Route::get('/projects/{slug}', [PublicProjectController::class, 'show'])->name('projects.show');
@@ -108,5 +116,36 @@ Route::middleware('auth')->group(function () {
 });
 
 
+// routes/web.php
+
+Route::middleware(['auth'])->group(function () {
+    // Souscription à un pack (injection manuelle du type 'package')
+    Route::get('/packages/{slug}/souscrire', function ($slug) {
+        return app(\App\Http\Controllers\SubscriptionController::class)->create('package', $slug);
+    })->name('subscription.create.package');
+
+    Route::post('/packages/{slug}/souscrire', function (\Illuminate\Http\Request $request, $slug) {
+        return app(\App\Http\Controllers\SubscriptionController::class)->store($request, 'package', $slug);
+    })->name('subscription.store.package');
+    
+    // Souscription à un service (injection manuelle du type 'service')
+    Route::get('/services/{slug}/souscrire', function ($slug) {
+        return app(\App\Http\Controllers\SubscriptionController::class)->create('service', $slug);
+    })->name('subscription.create.service');
+
+    Route::post('/services/{slug}/souscrire', function (\Illuminate\Http\Request $request, $slug) {
+        return app(\App\Http\Controllers\SubscriptionController::class)->store($request, 'service', $slug);
+    })->name('subscription.store.service');
+// Dans Route::middleware(['auth'])->group(function () { ...
+
+    Route::get('/payment/process/{subscription}', [PaymentController::class, 'processPayment'])
+        ->name('payment.process');
+    // Suivi Paiement
+    Route::get('/payment/waiting/{reference}', [PaymentController::class, 'waiting'])->name('payment.waiting');
+    Route::get('/payment/check/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.check');
+});
+
+// Webhook intact
+Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
 
 require __DIR__.'/auth.php';

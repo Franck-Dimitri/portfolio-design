@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, usePage } from '@inertiajs/react'
 import { ThemeSelector } from '@/Components/ThemeToggle'
+import { User } from 'lucide-react'
 import {
     ArrowRight, ExternalLink, Sparkles, Eye,
     Layers, Palette, Zap, Award, ChevronDown,
@@ -109,6 +110,8 @@ export default function Header() {
                         })}
                     </nav>
                     
+                  
+                    
                     {/* Actions de droite */}
                     <div className='flex items-center gap-2'>
                         <ThemeSelector />
@@ -121,6 +124,7 @@ export default function Header() {
                             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
                     </div>
+                   
                 </div>
 
                 {/* ✅ Menu mobile - corrigé pour ne pas déborder */}
