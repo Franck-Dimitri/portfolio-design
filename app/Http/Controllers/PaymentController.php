@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Inertia\Inertia; 
+
+AQ.Ab8RN6LQEtYHWNvFwQyPOjKLR1P19HylNuGVJGMU4aRWrhbPwQ
 
 class PaymentController extends Controller
 {
