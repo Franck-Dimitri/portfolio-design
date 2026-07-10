@@ -585,6 +585,7 @@ export default function PackagesIndex({ packages }) {
 
             {/* ── Modals ─────────────────────────────────────── */}
             <PackageModal
+                key={showModal ? (editPackage ? `edit-${editPackage.id}` : 'create') : 'hidden'}
                 isOpen={showModal}
                 onClose={() => { setShowModal(false); setEditPackage(null) }}
                 editPackage={editPackage}

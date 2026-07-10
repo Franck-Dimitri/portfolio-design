@@ -16,7 +16,7 @@ class BlogController extends Controller
 {
     public function index()
     {
-        $posts = Post::orderBy('created_at', 'desc')->get();
+        $posts = Post::withCount('comments')->orderBy('created_at', 'desc')->get();
         return Inertia::render('Admin/pages/Blog/Index', [
             'posts' => $posts
         ]);

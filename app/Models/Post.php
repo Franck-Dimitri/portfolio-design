@@ -15,7 +15,9 @@ class Post extends Model
         'image',
         'temps_lecture',
         'is_published',
-        'published_at'
+        'published_at',
+        'views',
+        'likes'
     ];
 
     protected $casts = [

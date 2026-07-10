@@ -103,6 +103,8 @@ Route::post('/contact', [ContactController::class, 'send'])->name('contact.send'
 
 Route::get('/blog', [\App\Http\Controllers\PublicBlogController::class, 'index'])->name('blog');
 Route::get('/blog/{slug}', [\App\Http\Controllers\PublicBlogController::class, 'show'])->name('blog.show');
+Route::post('/blog/{id}/like', [\App\Http\Controllers\PublicBlogController::class, 'like'])->name('blog.like');
+Route::post('/blog/{id}/comment', [\App\Http\Controllers\PublicBlogController::class, 'storeComment'])->name('blog.comment');
 // NOTE: single route for project show is defined above at /projects/{slug}
 
 Route::middleware('auth')->group(function () {

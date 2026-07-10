@@ -1,6 +1,6 @@
 import { Link, useForm } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import { Plus, Pencil, Trash2, BookOpen, ExternalLink, Calendar } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookOpen, ExternalLink, Calendar, Eye, Heart, MessageSquare } from 'lucide-react'
 
 export default function BlogIndex({ posts }) {
     const { delete: destroy } = useForm()
@@ -55,7 +55,7 @@ export default function BlogIndex({ posts }) {
                                     </div>
                                     <div>
                                         <h2 className="font-bold text-lg leading-tight line-clamp-1">{p.titre}</h2>
-                                        <div className="flex items-center gap-3 mt-1 text-xs text-base-muted">
+                                        <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-base-muted">
                                             <span className="flex items-center gap-1">
                                                 <Calendar size={12} />
                                                 Créé le {formatDate(p.created_at)}
@@ -63,6 +63,17 @@ export default function BlogIndex({ posts }) {
                                             {p.temps_lecture && (
                                                 <span>• {p.temps_lecture} min de lecture</span>
                                             )}
+                                            <div className="flex items-center gap-3 ml-2 border-l border-base pl-3">
+                                                <span className="flex items-center gap-1" title="Vues">
+                                                    <Eye size={12} /> {p.views || 0}
+                                                </span>
+                                                <span className="flex items-center gap-1" title="Likes">
+                                                    <Heart size={12} /> {p.likes || 0}
+                                                </span>
+                                                <span className="flex items-center gap-1" title="Commentaires">
+                                                    <MessageSquare size={12} /> {p.comments_count || 0}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

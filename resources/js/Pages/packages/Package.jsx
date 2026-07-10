@@ -25,6 +25,10 @@ function useInView(options = {}) {
     return [ref, inView]
 }
 
+const iconMap = {
+    Zap, Crown, Star, Rocket, Sparkles, Diamond: Sparkles, Package, Layers, Gift, Shield, Clock, Eye
+};
+
 function PackageCard({ package: pkg, index = 0 }) {
     const [isHovered, setIsHovered] = useState(false)
     const [ref, inView] = useInView()
@@ -86,11 +90,10 @@ function PackageCard({ package: pkg, index = 0 }) {
                 <div className="flex items-start justify-between">
                     <div>
                         <div className="w-14 h-14 rounded-2xl bg-white dark:bg-neutral-800 shadow-md flex items-center justify-center text-3xl mb-4 transition-all duration-300 group-hover:shadow-orange-sm group-hover:scale-110">
-                            {pkg.icone ? (
-                                <span>{pkg.icone}</span>
-                            ) : (
-                                <Package size={28} className="text-primary-500" />
-                            )}
+                            {(() => {
+                                const IconComponent = (pkg.icone && iconMap[pkg.icone]) ? iconMap[pkg.icone] : Package;
+                                return <IconComponent size={28} className="text-primary-500" />;
+                            })()}
                         </div>
                         <h3 className="font-bold text-xl text-base-primary group-hover:text-primary-500 transition-colors">
                             {pkg.titre}
