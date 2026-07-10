@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { Link, Head } from '@inertiajs/react'
+    import React, { useState, useEffect } from 'react'
+import { Link, Head, useForm } from '@inertiajs/react'
 import MainLayout from '@/Layouts/MainLayout'
 import SEOHead from '@/Components/SEOHead'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { 
     Calendar, Clock, User, Share2, MessageSquare, 
-    Link as LinkIcon, Linkedin, Twitter, ChevronRight, List
+    Link as LinkIcon, Linkedin, Twitter, ChevronRight, List,
+    Heart, Eye
 } from 'lucide-react'
+import axios from 'axios'
 
 export default function BlogShow({ post, relatedPosts }) {
     const formatDate = (dateString) => {
@@ -39,6 +41,38 @@ export default function BlogShow({ post, relatedPosts }) {
     const generateId = (text) => {
         if (typeof text !== 'string') return Math.random().toString(36).substr(2, 9)
         return text.toLowerCase().replace(/[\s\W-]+/g, '-')
+    }
+
+    const [likes, setLikes] = useState(post.likes || 0)
+    const [hasLiked, setHasLiked] = useState(false)
+    const [isLiking, setIsLiking] = useState(false)
+
+    const handleLike = async () => {
+        if (hasLiked || isLiking) return
+        setIsLiking(true)
+        try {
+            const res = await axios.post(`/blog/${post.id}/like`)
+            setLikes(res.data.likes)
+            setHasLiked(true)
+        } catch (e) {
+            console.error('Error liking post', e)
+        } finally {
+            setIsLiking(false)
+        }
+    }
+
+    const { data, setData, post: postComment, processing, errors, reset } = useForm({
+        nom: '',
+        email: '',
+        commentaire: ''
+    })
+
+    const submitComment = (e) => {
+        e.preventDefault()
+        postComment(`/blog/${post.id}/comment`, {
+            preserveScroll: true,
+            onSuccess: () => reset()
+        })
     }
 
     return (
@@ -148,18 +182,30 @@ export default function BlogShow({ post, relatedPosts }) {
                                 </ReactMarkdown>
                             </div>
 
-                            {/* Share Section */}
-                            <div className="mt-12 pt-8 border-t border-gray-800 flex items-center gap-4">
-                                <span className="text-sm font-mono text-gray-500 uppercase tracking-widest">Partager :</span>
-                                <button className="flex items-center gap-2 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 px-4 py-2 rounded text-xs font-mono transition-colors">
-                                    <LinkIcon size={14} /> Copier le lien
-                                </button>
-                                <button className="flex items-center gap-2 border border-gray-800 text-gray-400 hover:text-[#0A66C2] hover:border-[#0A66C2] px-4 py-2 rounded text-xs font-mono transition-colors">
-                                    <Linkedin size={14} /> LinkedIn
-                                </button>
-                                <button className="flex items-center gap-2 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 px-4 py-2 rounded text-xs font-mono transition-colors">
-                                    <Twitter size={14} /> X / Twitter
-                                </button>
+                            {/* Stats & Share Section */}
+                            <div className="mt-12 pt-8 border-t border-gray-800 flex flex-wrap items-center justify-between gap-4">
+                                <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2 text-gray-400 font-mono text-sm">
+                                        <Eye size={16} /> {post.views || 0} vues
+                                    </div>
+                                    <button 
+                                        onClick={handleLike}
+                                        disabled={hasLiked || isLiking}
+                                        className={`flex items-center gap-2 font-mono text-sm transition-colors ${hasLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}
+                                    >
+                                        <Heart size={16} fill={hasLiked ? 'currentColor' : 'none'} /> 
+                                        {likes} likes
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm font-mono text-gray-500 uppercase tracking-widest hidden sm:inline">Partager :</span>
+                                    <button className="flex items-center gap-2 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-600 px-3 py-1.5 rounded text-xs font-mono transition-colors">
+                                        <LinkIcon size={14} /> <span className="hidden sm:inline">Lien</span>
+                                    </button>
+                                    <button className="flex items-center gap-2 border border-gray-800 text-gray-400 hover:text-[#0A66C2] hover:border-[#0A66C2] px-3 py-1.5 rounded text-xs font-mono transition-colors">
+                                        <Linkedin size={14} /> <span className="hidden sm:inline">LinkedIn</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Related Posts */}
@@ -228,29 +274,73 @@ export default function BlogShow({ post, relatedPosts }) {
                             <div className="border border-gray-800 bg-[#111] p-6 rounded">
                                 <h3 className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-widest text-primary-500 mb-6 pb-4 border-b border-gray-800">
                                     <MessageSquare size={14} /> Commentaires
-                                    <span className="text-gray-500 font-normal ml-auto">0 discussion</span>
+                                    <span className="text-gray-500 font-normal ml-auto">{post.comments?.length || 0} discussion(s)</span>
                                 </h3>
                                 
-                                <button className="w-full bg-primary-500 text-[#0A0A0A] font-bold font-mono text-xs uppercase tracking-widest py-3 rounded flex items-center justify-center gap-2 hover:bg-primary-400 transition-colors mb-8">
-                                    <MessageSquare size={14} />
-                                    Écrire un commentaire
-                                </button>
-
-                                {/* Mock Comment (to match design) */}
-                                <div className="space-y-4">
-                                    <div className="border border-gray-800 p-4 rounded bg-[#161616]">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-gray-700 flex items-center justify-center text-[10px] text-white">M</div>
-                                                <span className="text-xs font-bold text-gray-300">user123</span>
-                                            </div>
-                                            <span className="text-[10px] text-gray-600 font-mono">24.05.2026 à 14:32</span>
-                                        </div>
-                                        <p className="text-xs text-gray-400 mb-3">Module de commentaires en cours d'intégration. Revenez bientôt !</p>
-                                        <div className="flex gap-2">
-                                            <button className="text-[10px] font-mono border border-gray-700 text-gray-400 px-2 py-1 rounded hover:text-white">Répondre</button>
-                                        </div>
+                                <form onSubmit={submitComment} className="mb-8 space-y-4">
+                                    <div>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Votre nom" 
+                                            className="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-primary-500 transition-colors"
+                                            value={data.nom}
+                                            onChange={e => setData('nom', e.target.value)}
+                                            required
+                                        />
+                                        {errors.nom && <span className="text-red-500 text-xs">{errors.nom}</span>}
                                     </div>
+                                    <div>
+                                        <input 
+                                            type="email" 
+                                            placeholder="Votre email" 
+                                            className="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-primary-500 transition-colors"
+                                            value={data.email}
+                                            onChange={e => setData('email', e.target.value)}
+                                            required
+                                        />
+                                        {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
+                                    </div>
+                                    <div>
+                                        <textarea 
+                                            placeholder="Votre commentaire..." 
+                                            className="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-primary-500 transition-colors h-24 resize-none"
+                                            value={data.commentaire}
+                                            onChange={e => setData('commentaire', e.target.value)}
+                                            required
+                                        ></textarea>
+                                        {errors.commentaire && <span className="text-red-500 text-xs">{errors.commentaire}</span>}
+                                    </div>
+                                    <button 
+                                        type="submit" 
+                                        disabled={processing}
+                                        className="w-full bg-primary-500 text-[#0A0A0A] font-bold font-mono text-xs uppercase tracking-widest py-3 rounded flex items-center justify-center gap-2 hover:bg-primary-400 transition-colors disabled:opacity-50"
+                                    >
+                                        <MessageSquare size={14} />
+                                        {processing ? 'Envoi...' : 'Envoyer'}
+                                    </button>
+                                </form>
+
+                                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {post.comments && post.comments.length > 0 ? (
+                                        post.comments.map(comment => (
+                                            <div key={comment.id} className="border border-gray-800 p-4 rounded bg-[#161616]">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-6 h-6 rounded bg-gray-700 flex items-center justify-center text-[10px] text-white font-bold">
+                                                            {comment.nom.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <span className="text-xs font-bold text-gray-300">{comment.nom}</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-gray-600 font-mono">
+                                                        {new Date(comment.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-gray-400 whitespace-pre-wrap">{comment.commentaire}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-gray-500 italic text-center py-4">Soyez le premier à commenter !</p>
+                                    )}
                                 </div>
                             </div>
 

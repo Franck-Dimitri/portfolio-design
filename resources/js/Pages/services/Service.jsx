@@ -105,6 +105,20 @@ export default function Service({ services = [] }) {
         return () => clearTimeout(t)
     }, [])
 
+    const getCategoryIcon = (category) => {
+        switch (category?.toLowerCase()) {
+            case 'logo design': return Palette;
+            case 'branding': return Layers;
+            case 'flyer design': return PenTool;
+            case 'poster design': return PenTool;
+            case 'social media design': return Smartphone;
+            case 'ui/ux design': return Globe;
+            case 'illustration': return Palette;
+            case 'motion design': return Zap;
+            default: return Package;
+        }
+    };
+
     // Formater les services depuis la BDD pour l'affichage
     const displayServices = services.map(service => ({
         title: service.titre,
@@ -113,6 +127,7 @@ export default function Service({ services = [] }) {
         price: service.starting_price ? `À partir de ${service.starting_price.toLocaleString('fr-FR')} FCFA` : 'Sur devis',
         duration: service.delaie_livraison ? `${service.delaie_livraison}` : 'À convenir',
         slug: service.slug,
+        icon: getCategoryIcon(service.cathegorie),
     }))
 
     return (

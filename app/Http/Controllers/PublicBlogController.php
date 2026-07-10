@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -32,7 +33,7 @@ class PublicBlogController extends Controller
         ]);
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
         $post = Post::where('slug', $slug)
             ->where('is_published', true)
@@ -41,8 +42,12 @@ class PublicBlogController extends Controller
             }])
             ->firstOrFail();
 
-        // Increment views ? Mettre en place un système simple si nécessaire, 
-        // ou utiliser les données mock pour les vues dans un premier temps.
+        // Increment views if not already viewed in this session
+        $sessionKey = 'viewed_post_' . $post->id;
+        if (!$request->session()->has($sessionKey)) {
+            $post->increment('views');
+            $request->session()->put($sessionKey, true);
+        }
 
         // Articles similaires
         $relatedPosts = Post::where('is_published', true)
@@ -55,5 +60,41 @@ class PublicBlogController extends Controller
             'post' => $post,
             'relatedPosts' => $relatedPosts
         ]);
+    }
+
+    public function like(Request $request, $id)
+    {
+        $post = Post::findOrFail($id);
+        
+        $sessionKey = 'liked_post_' . $post->id;
+        if (!$request->session()->has($sessionKey)) {
+            $post->increment('likes');
+            $request->session()->put($sessionKey, true);
+        }
+
+        return response()->json([
+            'likes' => $post->likes,
+            'has_liked' => true
+        ]);
+    }
+
+    public function storeComment(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'commentaire' => 'required|string',
+        ]);
+
+        $post = Post::findOrFail($id);
+
+        $comment = new Comment();
+        $comment->post_id = $post->id;
+        $comment->nom = $validated['nom'];
+        $comment->email = $validated['email'];
+        $comment->commentaire = $validated['commentaire'];
+        $comment->save();
+
+        return redirect()->back()->with('success', 'Votre commentaire a été ajouté avec succès.');
     }
 }
