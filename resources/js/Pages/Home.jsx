@@ -33,6 +33,15 @@ function useInView(options = {}) {
 function StructuralLines() {
     return (
         <div className="fixed inset-0 pointer-events-none z-0 flex justify-center overflow-hidden">
+            {/* Motif de grille Blueprint subtil en fond */}
+            <div 
+                className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] text-black dark:text-white"
+                style={{
+                    backgroundImage: `linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)`,
+                    backgroundSize: '32px 32px'
+                }}
+            ></div>
+
             <div className="w-full max-w-7xl h-full relative border-x border-gray-200/50 dark:border-gray-800/50 flex">
                 <div className="flex-1 border-r border-gray-200/30 dark:border-gray-800/30 border-dashed hidden md:block"></div>
                 <div className="flex-1 border-r border-gray-200/30 dark:border-gray-800/30 border-dashed hidden lg:block"></div>

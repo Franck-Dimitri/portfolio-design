@@ -1,415 +1,295 @@
-import { useState, useRef, useEffect } from 'react'
-import { Link } from '@inertiajs/react'
+import { useState, useRef, useEffect } from 'react';
+import { Link } from '@inertiajs/react';
 import {
-    ArrowRight, Eye, Search, Sparkles, Star, ArrowUpRight,
-    Grid3x3, List, DollarSign, Package, CheckCircle,
-    RefreshCw, Clock, Layers, Crown, Shield, Zap,
-    TrendingUp, Rocket, Gift
-} from 'lucide-react'
-import MainLayout from '@/Layouts/MainLayout'
-import SEOHead from '@/Components/SEOHead'
+    ArrowRight, Search, Crown, Package,
+    CheckCircle, RefreshCw, Clock, Gift, Box, Focus, Layers, Sparkles
+} from 'lucide-react';
+import MainLayout from '@/Layouts/MainLayout';
+import SEOHead from '@/Components/SEOHead';
 
-function useInView(options = {}) {
-    const ref = useRef(null)
-    const [inView, setInView] = useState(false)
-    useEffect(() => {
-        const el = ref.current
-        if (!el) return
-        const obs = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect() } },
-            { threshold: 0.12, ...options }
-        )
-        obs.observe(el)
-        return () => obs.disconnect()
-    }, [])
-    return [ref, inView]
+/* ══════════════════════════════════════════════════════════════
+   COMPOSANT – Lignes structurelles (Design Canvas)
+══════════════════════════════════════════════════════════════ */
+function CanvasLines() {
+    return (
+        <div className="fixed inset-0 pointer-events-none z-0 flex justify-center overflow-hidden">
+            <div 
+                className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] text-black dark:text-white"
+                style={{
+                    backgroundImage: `linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)`,
+                    backgroundSize: '32px 32px'
+                }}
+            ></div>
+
+            <div className="w-full max-w-7xl h-full relative border-x border-gray-200/50 dark:border-gray-800/50 flex">
+                <div className="flex-1 border-r border-gray-200/30 dark:border-gray-800/30 hidden md:block"></div>
+                <div className="flex-1 border-r border-gray-200/30 dark:border-gray-800/30 hidden lg:block"></div>
+                <div className="flex-1 border-r border-gray-200/30 dark:border-gray-800/30 hidden lg:block"></div>
+                <div className="flex-1 hidden md:block"></div>
+            </div>
+            
+            <div className="absolute top-10 left-10 w-4 h-4 border-t border-l border-gray-400 dark:border-gray-600"></div>
+            <div className="absolute top-10 right-10 w-4 h-4 border-t border-r border-gray-400 dark:border-gray-600"></div>
+            <div className="absolute bottom-10 left-10 w-4 h-4 border-b border-l border-gray-400 dark:border-gray-600"></div>
+            <div className="absolute bottom-10 right-10 w-4 h-4 border-b border-r border-gray-400 dark:border-gray-600"></div>
+        </div>
+    );
 }
 
-const iconMap = {
-    Zap, Crown, Star, Rocket, Sparkles, Diamond: Sparkles, Package, Layers, Gift, Shield, Clock, Eye
-};
-
-function PackageCard({ package: pkg, index = 0 }) {
-    const [isHovered, setIsHovered] = useState(false)
-    const [ref, inView] = useInView()
-
-    const getBadgeColor = () => {
-        if (pkg.couleur_badge) return pkg.couleur_badge
-        if (pkg.is_populaire) return '#f59e0b'
-        return '#f97316'
-    }
-
-    const badgeColor = getBadgeColor()
-
+function PackageCard({ package: pkg }) {
     return (
-        <article
-            ref={ref}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className={`group relative overflow-hidden rounded-2xl bg-elevated border border-base transition-all duration-500 hover:shadow-orange-md hover:-translate-y-2 ${inView ? 'animate-fade-in-up' : 'opacity-0'}`}
-            style={{ animationDelay: `${index * 100}ms` }}
-        >
-            {/* Motif de fond subtil */}
-            <div className="absolute inset-0 opacity-5 pointer-events-none">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary-400 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        <article className="group relative bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 hover:border-primary-500 transition-all flex flex-col h-full">
+            {/* Bounding Box effect */}
+            <div className="absolute -inset-[1px] border border-primary-500/0 group-hover:border-primary-500/30 transition-colors pointer-events-none z-20">
+                <div className="absolute -top-[1px] -left-[1px] w-1.5 h-1.5 bg-white dark:bg-[#111] border border-primary-500 opacity-0 group-hover:opacity-100"></div>
+                <div className="absolute -top-[1px] -right-[1px] w-1.5 h-1.5 bg-white dark:bg-[#111] border border-primary-500 opacity-0 group-hover:opacity-100"></div>
+                <div className="absolute -bottom-[1px] -left-[1px] w-1.5 h-1.5 bg-white dark:bg-[#111] border border-primary-500 opacity-0 group-hover:opacity-100"></div>
+                <div className="absolute -bottom-[1px] -right-[1px] w-1.5 h-1.5 bg-white dark:bg-[#111] border border-primary-500 opacity-0 group-hover:opacity-100"></div>
             </div>
 
-            {/* Badge "Populaire" amélioré */}
-            {pkg.is_populaire && (
-                <div className="absolute -top-1 -right-1 z-20">
-                    <div className="relative">
-                        <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-yellow-400 to-yellow-500 rotate-45 shadow-lg"></div>
-                        <div className="relative z-10 px-4 py-1.5 text-xs font-bold text-white flex items-center gap-1.5">
-                            <Crown size={12} />
-                            Populaire
-                        </div>
+            <div className="p-6 flex-1 flex flex-col relative z-10">
+                <div className="flex justify-between items-start mb-6">
+                    <div className="w-12 h-12 border border-gray-200 dark:border-gray-800 flex items-center justify-center text-gray-500 group-hover:border-primary-500 group-hover:text-primary-500 transition-colors bg-gray-50 dark:bg-[#161616]">
+                        <Package size={20} />
                     </div>
-                </div>
-            )}
-
-            {/* Badge "Nouveau" ou "Promo" */}
-            {pkg.prix_barre && (
-                <div className="absolute top-4 left-4 z-20">
-                    <span className="px-3 py-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg">
-                        <Gift size={12} />
-                        Promo
-                    </span>
-                </div>
-            )}
-
-            {/* En-tête avec icône et gradient */}
-            <div 
-                className={`relative p-6 transition-all duration-300 ${
-                    isHovered ? 'scale-[1.02]' : 'scale-100'
-                }`}
-                style={{
-                    background: `linear-gradient(135deg, ${badgeColor}15, ${badgeColor}05)`
-                }}
-            >
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="w-14 h-14 rounded-2xl bg-white dark:bg-neutral-800 shadow-md flex items-center justify-center text-3xl mb-4 transition-all duration-300 group-hover:shadow-orange-sm group-hover:scale-110">
-                            {(() => {
-                                const IconComponent = (pkg.icone && iconMap[pkg.icone]) ? iconMap[pkg.icone] : Package;
-                                return <IconComponent size={28} className="text-primary-500" />;
-                            })()}
-                        </div>
-                        <h3 className="font-bold text-xl text-base-primary group-hover:text-primary-500 transition-colors">
-                            {pkg.titre}
-                        </h3>
-                        {pkg.description_courte && (
-                            <p className="text-sm text-base-muted mt-1 max-w-xs">
-                                {pkg.description_courte}
-                            </p>
-                        )}
-                    </div>
-                    {pkg.is_active ? (
-                        <span className="px-3 py-1 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-medium border border-green-500/20 backdrop-blur-sm">
-                            Disponible
-                        </span>
-                    ) : (
-                        <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 text-xs font-medium border border-red-500/20 backdrop-blur-sm">
-                            Indisponible
-                        </span>
-                    )}
-                </div>
-
-                {/* Prix mis en valeur */}
-                <div className="mt-6 pt-4 border-t border-base/50">
-                    <div className="flex items-end gap-3">
-                        <div>
-                            <span className="text-4xl font-bold text-base-primary">
-                                {pkg.prix.toLocaleString()}
+                    <div className="flex flex-col items-end gap-2">
+                        {pkg.is_populaire && (
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-yellow-500 text-black">
+                                <Crown size={10} className="inline mr-1" /> RECOMMANDÉ
                             </span>
-                            <span className="text-sm font-medium text-base-muted ml-1">FCFA</span>
-                        </div>
+                        )}
                         {pkg.prix_barre && (
-                            <span className="text-sm text-base-muted line-through mb-1">
-                                {pkg.prix_barre.toLocaleString()} FCFA
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-widest px-2 py-1 border border-red-500 text-red-500">
+                                <Gift size={10} className="inline mr-1" /> PROMO
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-base-muted mt-0.5">
-                        <Clock size={12} />
-                        <span>Paiement mensuel • Sans engagement</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Contenu */}
-            <div className="p-6 space-y-4">
-                {/* Stats rapides avec icônes */}
-                <div className="grid grid-cols-3 gap-2 bg-muted/30 rounded-xl p-3">
-                    {pkg.nombre_design && (
-                        <div className="text-center">
-                            <div className="text-primary-500 font-bold text-sm">
-                                {pkg.nombre_design === 999 ? '∞' : pkg.nombre_design}
-                            </div>
-                            <div className="text-xs text-base-muted">Designs</div>
-                        </div>
-                    )}
-                    {pkg.delai_livraison && (
-                        <div className="text-center">
-                            <div className="text-primary-500 font-bold text-sm">
-                                {pkg.delai_livraison}j
-                            </div>
-                            <div className="text-xs text-base-muted">Livraison</div>
-                        </div>
-                    )}
-                    <div className="text-center">
-                        <div className="text-primary-500 font-bold text-sm">
-                            {pkg.nombre_revision || 0}
-                        </div>
-                        <div className="text-xs text-base-muted">Révisions</div>
-                    </div>
                 </div>
 
-                {/* Features avec puces modernes */}
+                <h3 className="font-display font-bold text-2xl text-gray-900 dark:text-white uppercase tracking-wider mb-2">
+                    {pkg.titre}
+                </h3>
+                
+                {pkg.description_courte && (
+                    <p className="text-sm font-sans text-gray-500 leading-relaxed mb-6">
+                        {pkg.description_courte}
+                    </p>
+                )}
+
+                <div className="mb-6">
+                    <div className="flex items-end gap-2">
+                        <span className="text-3xl font-display font-bold text-gray-900 dark:text-white">
+                            {pkg.prix.toLocaleString()}
+                        </span>
+                        <span className="text-sm font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">FCFA</span>
+                    </div>
+                    {pkg.prix_barre && (
+                        <div className="text-xs font-mono text-gray-400 line-through mt-1">
+                            {pkg.prix_barre.toLocaleString()} FCFA
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-px bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 mb-6 font-mono text-[10px] uppercase tracking-widest">
+                    <div className="bg-gray-50 dark:bg-[#161616] p-2 text-center">
+                        <div className="font-bold text-primary-500">{pkg.nombre_design === 999 ? '∞' : pkg.nombre_design}</div>
+                        <div className="text-gray-500">DESIGNS</div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-[#161616] p-2 text-center">
+                        <div className="font-bold text-primary-500">{pkg.delai_livraison || '-'}j</div>
+                        <div className="text-gray-500">DÉLAI</div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-[#161616] p-2 text-center">
+                        <div className="font-bold text-primary-500">{pkg.nombre_revision === 999 ? '∞' : (pkg.nombre_revision || 0)}</div>
+                        <div className="text-gray-500">RÉVISIONS</div>
+                    </div>
+                </div>
+
                 {pkg.features && pkg.features.length > 0 && (
-                    <div className="space-y-2">
-                        {pkg.features.slice(0, 3).map((feature, idx) => (
-                            <div key={idx} className="flex items-start gap-2.5 text-sm group-hover:translate-x-1 transition-transform duration-300" style={{ transitionDelay: `${idx * 50}ms` }}>
-                                <div className="w-5 h-5 rounded-full bg-primary-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <CheckCircle size={12} className="text-primary-500" />
-                                </div>
-                                <span className="text-base-muted">{feature}</span>
+                    <div className="space-y-3 mb-8">
+                        {pkg.features.slice(0, 4).map((feature, idx) => (
+                            <div key={idx} className="flex items-start gap-3">
+                                <div className="w-1.5 h-1.5 bg-primary-500 mt-1.5 shrink-0"></div>
+                                <span className="text-xs font-mono text-gray-600 dark:text-gray-400 uppercase tracking-wide">{feature}</span>
                             </div>
                         ))}
-                        {pkg.features.length > 3 && (
-                            <div className="text-sm text-primary-500 font-medium pl-7">
-                                +{pkg.features.length - 3} autres avantages
+                        {pkg.features.length > 4 && (
+                            <div className="text-[10px] font-mono text-primary-500 font-bold uppercase tracking-widest pl-4">
+                                + {pkg.features.length - 4} AUTRES CARACTÉRISTIQUES
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Boutons */}
-                <div className="pt-4 border-t border-base flex flex-col sm:flex-row gap-3">
+                <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row gap-3">
                     <Link
                         href={`/packages/${pkg.slug}`}
-                        className="flex-1 btn btn-primary text-center justify-center group/btn gap-2"
+                        className="flex-1 flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 bg-transparent text-gray-900 dark:text-white font-mono font-bold text-xs uppercase tracking-widest px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#161616] transition-colors"
                     >
-                        Voir détails
-                        <ArrowUpRight size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                        INSPECTER
                     </Link>
                     {pkg.is_active && (
                         <Link
                             href={`/packages/${pkg.slug}/souscrire`}
-                            className="flex-1 btn btn-secondary text-center justify-center gap-2"
+                            className="flex-1 flex items-center justify-center gap-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest px-4 py-3 hover:bg-primary-400 transition-colors"
                         >
-                            <Sparkles size={16} />
-                            Souscrire
+                            SOUSCRIRE
                         </Link>
                     )}
                 </div>
             </div>
         </article>
-    )
+    );
 }
 
 export default function PackageIndex({ packages = [] }) {
-    const [searchTerm, setSearchTerm] = useState('')
-    const [viewMode, setViewMode] = useState('grid')
-    const [filterActive, setFilterActive] = useState('all')
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterActive, setFilterActive] = useState('all');
 
     const filteredPackages = packages.filter(pkg => {
         const matchSearch = pkg.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            pkg.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           pkg.description_courte?.toLowerCase().includes(searchTerm.toLowerCase())
+                           pkg.description_courte?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchActive = filterActive === 'all' || 
                            (filterActive === 'active' && pkg.is_active) ||
-                           (filterActive === 'inactive' && !pkg.is_active)
-        return matchSearch && matchActive
-    })
-
-    const totalPackages = packages.length
-    const activePackages = packages.filter(p => p.is_active).length
-    const popularPackages = packages.filter(p => p.is_populaire).length
-    const avgPrice = packages.reduce((sum, p) => sum + (p.prix || 0), 0) / packages.length || 0
+                           (filterActive === 'inactive' && !pkg.is_active);
+        return matchSearch && matchActive;
+    });
 
     return (
         <MainLayout>
             <SEOHead 
-                title="Dim's Creative Academy | Nos Packs de Design"
-                description="Découvrez nos packs de design adaptés à vos besoins. Abonnements mensuels avec des designs illimités."
+                title="Packs & Souscriptions | Dims Creative Academy"
+                description="Découvrez nos packs de design structurés. Abonnements mensuels avec des livrables illimités."
                 url="/packages"
             />
 
-            {/* Hero Section améliorée */}
-            <section className="relative pt-32 pb-20 overflow-hidden">
-                {/* Motif de fond */}
-                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 to-transparent dark:from-primary-950/20">
-                    <div className="absolute top-0 left-0 w-full h-full opacity-[0.03]">
-                        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary-400 rounded-full blur-3xl"></div>
-                    </div>
-                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmOTczMTYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
-                </div>
+            <CanvasLines />
 
-                <div className="container-main px-4 relative z-10">
-                    <div className="text-center max-w-4xl mx-auto">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100 dark:bg-primary-950/50 border border-primary-200/50 dark:border-primary-800/50 mb-6 backdrop-blur-sm">
-                            <Package size={14} className="text-primary-500" />
-                            <span className="text-sm font-medium text-primary-600 dark:text-primary-400">Nos Offres</span>
-                        </div>
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                            Choisissez le{' '}
-                            <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-                                Pack Parfait
-                            </span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-base-muted max-w-2xl mx-auto leading-relaxed">
-                            Des solutions de design adaptées à tous vos besoins. Des packs flexibles et abordables.
-                        </p>
-                        
-                        {/* Stats avec icônes */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-3xl mx-auto">
-                            <div className="bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm rounded-2xl p-4 border border-base/50">
-                                <div className="text-2xl font-bold text-primary-500">{totalPackages}</div>
-                                <div className="text-xs text-base-muted">Packs disponibles</div>
+            <div className="relative z-10">
+                {/* ══════════════════════════════════════════════════
+                    § 1 – HERO SECTION
+                ══════════════════════════════════════════════════ */}
+                <section className="pt-32 pb-16 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0A0A0A]">
+                    <div className="container-main px-4">
+                        <div className="max-w-4xl">
+                            <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest text-primary-500 font-bold mb-6">
+                                <Box size={12} />
+                                <span>OFFRES PACKAGÉES</span>
+                                <span className="w-8 h-px bg-primary-500/50"></span>
+                                <span className="text-gray-400 dark:text-gray-600">VOL: {packages.length} PLANS</span>
                             </div>
-                            <div className="bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm rounded-2xl p-4 border border-base/50">
-                                <div className="text-2xl font-bold text-primary-500">{activePackages}</div>
-                                <div className="text-xs text-base-muted">Packs actifs</div>
-                            </div>
-                            <div className="bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm rounded-2xl p-4 border border-base/50">
-                                <div className="text-2xl font-bold text-primary-500">{popularPackages}</div>
-                                <div className="text-xs text-base-muted">Packs populaires</div>
-                            </div>
-                            <div className="bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm rounded-2xl p-4 border border-base/50">
-                                <div className="text-2xl font-bold text-primary-500">{Math.round(avgPrice).toLocaleString()} FCFA</div>
-                                <div className="text-xs text-base-muted">Prix moyen</div>
-                            </div>
+
+                            <h1 className="text-5xl md:text-7xl font-display font-bold uppercase tracking-tighter text-gray-900 dark:text-white mb-6 leading-none">
+                                SOLUTIONS <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-orange-400">SUR MESURE</span>
+                            </h1>
+                            
+                            <p className="text-lg text-gray-500 leading-relaxed mb-6 font-sans">
+                                Des environnements de conception complets. Sélectionnez le plan 
+                                qui correspond à la vélocité et aux besoins de votre entreprise.
+                            </p>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Filters - avec style moderne */}
-            <section className="sticky top-16 z-30 py-4 bg-base/95 backdrop-blur-md border-b border-base">
-                <div className="container-main px-4">
-                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">
-                        <div className="flex flex-wrap gap-2 justify-center">
-                            {['all', 'active', 'inactive'].map((filter) => {
-                                const labels = {
-                                    all: 'Tous les packs',
-                                    active: 'Actifs',
-                                    inactive: 'Indisponibles'
-                                }
-                                return (
-                                    <button
-                                        key={filter}
-                                        onClick={() => setFilterActive(filter)}
-                                        className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                                            filterActive === filter 
-                                                ? 'bg-primary-500 text-white shadow-orange-sm' 
-                                                : 'bg-muted text-base-muted hover:bg-primary-100 dark:hover:bg-primary-900/30'
-                                        }`}
-                                    >
-                                        {labels[filter]}
-                                    </button>
-                                )
-                            })}
-                        </div>
+                {/* ══════════════════════════════════════════════════
+                    § 2 – BARRE DE CONTRÔLE (FILTRES)
+                ══════════════════════════════════════════════════ */}
+                <section className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111]">
+                    <div className="container-main px-4">
+                        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center py-4">
+                            
+                            <div className="flex flex-wrap gap-2">
+                                {['all', 'active', 'inactive'].map((filter) => {
+                                    const labels = {
+                                        all: 'TOUS LES PLANS',
+                                        active: 'DISPONIBLES',
+                                        inactive: 'ARCHIVÉS'
+                                    };
+                                    const isActive = filterActive === filter;
+                                    return (
+                                        <button
+                                            key={filter}
+                                            onClick={() => setFilterActive(filter)}
+                                            className={`font-mono text-[10px] font-bold uppercase tracking-widest px-4 py-2 border transition-colors ${
+                                                isActive 
+                                                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-500' 
+                                                    : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#161616] text-gray-500 hover:border-gray-400 dark:hover:border-gray-600'
+                                            }`}
+                                        >
+                                            {labels[filter]}
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                        <div className="flex gap-3">
-                            <div className="relative">
-                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-muted" />
+                            <div className="relative w-full lg:w-72">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Rechercher un pack..."
+                                    placeholder="RECHERCHER..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 pr-4 py-2 rounded-full border border-base bg-muted text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
+                                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#161616] border border-gray-200 dark:border-gray-800 text-xs font-mono text-gray-900 dark:text-white uppercase tracking-widest focus:outline-none focus:border-primary-500 transition-colors placeholder:text-gray-400"
                                 />
                             </div>
-                            <button
-                                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                                className="p-2 rounded-full border border-base hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-950/50 transition-all"
-                            >
-                                {viewMode === 'grid' ? <List size={18} /> : <Grid3x3 size={18} />}
-                            </button>
+                            
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Packages Grid */}
-            <section className="section">
-                <div className="container-main px-4">
-                    {filteredPackages.length === 0 ? (
-                        <div className="text-center py-20 animate-fade-in">
-                            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-950 dark:to-primary-900 flex items-center justify-center">
-                                <Package className="text-primary-500" size={40} />
+                {/* ══════════════════════════════════════════════════
+                    § 3 – GRILLE DES PACKS
+                ══════════════════════════════════════════════════ */}
+                <section className="py-20 bg-gray-50 dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-gray-800">
+                    <div className="container-main px-4">
+                        {filteredPackages.length === 0 ? (
+                            <div className="text-center py-20 border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111]">
+                                <Focus size={32} className="mx-auto text-gray-400 mb-4" />
+                                <h3 className="text-lg font-display font-bold uppercase tracking-wider text-gray-900 dark:text-white mb-2">AUCUN RÉSULTAT</h3>
+                                <p className="text-xs font-mono text-gray-500 mb-6 uppercase tracking-widest">Les paramètres de recherche ne retournent aucun plan.</p>
+                                <button
+                                    onClick={() => { setFilterActive('all'); setSearchTerm(''); }}
+                                    className="inline-flex items-center gap-2 bg-gray-100 dark:bg-[#161616] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white font-mono font-bold text-xs uppercase tracking-widest px-6 py-3 hover:border-gray-400 transition-colors"
+                                >
+                                    <RefreshCw size={14} /> RÉINITIALISER LA REQUÊTE
+                                </button>
                             </div>
-                            <h3 className="text-2xl font-bold mb-2 text-base-primary">Aucun pack trouvé</h3>
-                            <p className="text-base-muted mb-6">Aucun pack ne correspond à vos critères de recherche.</p>
-                            <button
-                                onClick={() => { setFilterActive('all'); setSearchTerm('') }}
-                                className="btn btn-primary gap-2"
-                            >
-                                <RefreshCw size={16} />
-                                Réinitialiser les filtres
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="mb-8 flex flex-wrap justify-between items-center gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-1 h-8 bg-gradient-to-b from-primary-500 to-primary-400 rounded-full"></div>
-                                    <p className="text-base-muted">
-                                        <span className="font-bold text-2xl text-primary-500 mr-1">{filteredPackages.length}</span>
-                                        pack{filteredPackages.length > 1 ? 's' : ''} disponible{filteredPackages.length > 1 ? 's' : ''}
-                                        <span className="mx-2 text-base-muted/30">|</span>
-                                        <span className="inline-flex items-center gap-1">
-                                            <Star size={14} className="text-yellow-500 fill-yellow-500" />
-                                            {filteredPackages.filter(p => p.is_populaire).length} populaire{filteredPackages.filter(p => p.is_populaire).length > 1 ? 's' : ''}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div className={`grid ${viewMode === 'grid' 
-                                ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
-                                : 'grid-cols-1'} gap-6 md:gap-8`}>
-                                {filteredPackages.map((pkg, index) => (
-                                    <PackageCard key={pkg.id} package={pkg} index={index} />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredPackages.map((pkg) => (
+                                    <PackageCard key={pkg.id} package={pkg} />
                                 ))}
                             </div>
-                        </>
-                    )}
-                </div>
-            </section>
-
-            {/* CTA Section améliorée */}
-            <section className="section bg-subtle">
-                <div className="container-main px-4">
-                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-600 via-primary-500 to-primary-600 p-12 text-center">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
-                        <div className="relative z-10">
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-                                <Rocket size={16} className="text-white" />
-                                <span className="text-white/80 text-sm">Offre personnalisée</span>
-                            </div>
-                            <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">
-                                Besoin d'un pack personnalisé ?
-                            </h2>
-                            <p className="text-primary-100 text-lg max-w-md mx-auto mb-8">
-                                Contactez-nous pour créer une offre sur mesure adaptée à vos besoins spécifiques.
-                            </p>
-                            <Link 
-                                href="/contact" 
-                                className="inline-flex items-center gap-2 bg-white text-primary-600 px-8 py-4 rounded-2xl font-semibold hover:bg-primary-50 hover:shadow-xl hover:-translate-y-0.5 transition-all group"
-                            >
-                                Nous contacter
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                        </div>
+                        )}
                     </div>
-                </div>
-            </section>
+                </section>
+
+                {/* ══════════════════════════════════════════════════
+                    § 4 – CTA (OFFRE SUR MESURE)
+                ══════════════════════════════════════════════════ */}
+                <section className="py-24 bg-white dark:bg-[#111] text-center">
+                    <div className="container-main px-4">
+                        <div className="inline-flex items-center justify-center p-4 border border-gray-200 dark:border-gray-800 mb-6">
+                            <Layers className="text-primary-500" size={24} />
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-display font-bold uppercase tracking-tight text-gray-900 dark:text-white mb-6">
+                            ARCHITECTURE <span className="text-primary-500">SUR MESURE</span>
+                        </h2>
+                        <p className="text-gray-500 font-mono text-sm max-w-lg mx-auto mb-10 leading-relaxed uppercase tracking-wide">
+                            Aucun plan ne correspond exactement à vos spécifications ? Paramétrons ensemble un environnement adapté.
+                        </p>
+                        <Link 
+                            href="/contact" 
+                            className="inline-flex items-center justify-center gap-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest px-8 py-4 hover:bg-primary-400 transition-colors"
+                        >
+                            ÉTABLIR UN CAHIER DES CHARGES <ArrowRight size={14} />
+                        </Link>
+                    </div>
+                </section>
+
+            </div>
         </MainLayout>
-    )
+    );
 }
