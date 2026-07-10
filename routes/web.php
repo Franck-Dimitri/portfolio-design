@@ -19,6 +19,8 @@ use App\Http\Controllers\PaymentController;
 
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\SouscriptionController;
+use App\Http\Controllers\Admin\BlogController;
+
 use App\Http\Controllers\PackagePublicController;
 use App\Http\Controllers\CinetPayWebhookController;
  
@@ -39,11 +41,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/pages/Dashboard');
-    });
+    })->name('dashboard');
 
-    Route::get('/blogs', function () {
-        return Inertia::render('Admin/pages/Blog');
-    });
+    // Blog
+    Route::resource('blogs', \App\Http\Controllers\Admin\BlogController::class);
 
     Route::get('/packages', function () {
             return Inertia::render('Admin/pages/Packages/Index');
@@ -100,13 +101,8 @@ Route::get('/contact', function () {
 // Route pour le formulaire de contact
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
-Route::get('/blog', function () {
-    return Inertia::render('blog/Blog');
-})->name('blog');
-
-Route::get('/blog/{slug}', function ($slug) {
-    return Inertia::render('blog/BlogShow', ['slug' => $slug]);
-})->name('blog.show');
+Route::get('/blog', [\App\Http\Controllers\PublicBlogController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [\App\Http\Controllers\PublicBlogController::class, 'show'])->name('blog.show');
 // NOTE: single route for project show is defined above at /projects/{slug}
 
 Route::middleware('auth')->group(function () {

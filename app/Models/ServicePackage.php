@@ -59,7 +59,7 @@ class ServicePackage extends Model
     // ── Relations ─────────────────────────────────────────────
     public function souscriptions()
     {
-        return $this->hasMany(Souscription::class);
+        return $this->hasMany(Subscription::class);
     }
 }
 
