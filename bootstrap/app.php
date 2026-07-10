@@ -25,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'payment/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

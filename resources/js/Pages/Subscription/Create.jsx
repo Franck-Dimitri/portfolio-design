@@ -1,15 +1,10 @@
-// resources/js/Pages/Subscription/Create.jsx
-
 import { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, Link } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
-import { CreditCard, Shield, Zap, Package } from 'lucide-react';
+import SEOHead from '@/Components/SEOHead';
+import { CreditCard, Shield, Zap, Package, ArrowLeft, Terminal } from 'lucide-react';
 
 export default function Create({ type, item, durations, title, flash }) {
-    // On garde uniquement 'step' en état indépendant si tu prévois plusieurs étapes plus tard
-    const [step, setStep] = useState(1); 
-
-    // Toutes les données du formulaire sont maintenant centralisées dans useForm
     const { data, setData, post, processing, errors } = useForm({
         duration_months: durations[0] || 1,
         phone_number: '',
@@ -19,16 +14,12 @@ export default function Create({ type, item, durations, title, flash }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Dynamisme de l'URL selon le type (package ou service)
         const url = type === 'package' 
             ? `/packages/${item.slug}/souscrire` 
             : `/services/${item.slug}/souscrire`;
         
         post(url, {
             preserveScroll: true,
-            onSuccess: () => {
-                // Redirigé vers le paiement automatiquement par le backend
-            },
         });
     };
 
@@ -43,45 +34,67 @@ export default function Create({ type, item, durations, title, flash }) {
 
     return (
         <MainLayout>
-            <div className="pt-24 min-h-screen bg-gradient-to-b from-muted/30 to-background">
+            <SEOHead 
+                title={title}
+                description={`Souscrivez à notre ${type === 'package' ? 'pack' : 'service'} ${item.titre || item.nom}`}
+            />
+            
+            <div className="pt-24 pb-16 min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-300 transition-colors duration-300">
                 <div className="container-main max-w-4xl mx-auto px-4 py-8">
-                    <div className="bg-elevated rounded-2xl shadow-lg overflow-hidden border border-base">
-                        {/* En-tête */}
-                        <div className="bg-gradient-to-r from-primary-500/10 to-primary-600/5 p-6 border-b border-base">
-                            <div className="flex items-center gap-4">
-                                {getIcon()}
-                                <div>
-                                    <h1 className="text-2xl font-bold text-base-primary">{title}</h1>
-                                    <p className="text-base-muted">
-                                        {type === 'package' ? 'Pack de design' : 'Service de design'}
-                                    </p>
-                                </div>
+                    
+                    {/* Header Section */}
+                    <header className="mb-8">
+                        <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest mb-6">
+                            <Link href="/" className="text-primary-500 hover:text-primary-400">ACCUEIL</Link>
+                            <span className="text-gray-400 dark:text-gray-600">&gt;</span>
+                            <span className="text-gray-500">SOUSCRIPTION</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-bold font-display text-gray-900 dark:text-white leading-tight mb-4 tracking-tight uppercase">
+                            PROCÉDURE DE SOUSCRIPTION
+                        </h1>
+                    </header>
+
+                    {/* Main Container */}
+                    <div className="bg-white dark:bg-[#111] rounded border border-gray-200 dark:border-gray-800 relative overflow-hidden shadow-xl">
+                        {/* Blueprint Corner */}
+                        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary-500 z-10"></div>
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary-500 z-10"></div>
+
+                        {/* Top Bar */}
+                        <div className="bg-gray-100 dark:bg-[#161616] p-6 border-b border-gray-200 dark:border-gray-800 flex items-center gap-4">
+                            {getIcon()}
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">{title}</h2>
+                                <p className="text-xs font-mono text-gray-500 uppercase tracking-widest mt-1">
+                                    {type === 'package' ? 'MODULE: PACK' : 'MODULE: SERVICE'}
+                                </p>
                             </div>
                         </div>
 
-                        <div className="p-6 space-y-6">
-                            {/* Détails du pack/service */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl">
-                                <div>
-                                    <p className="text-sm text-base-muted">Nom</p>
-                                    <p className="font-semibold text-base-primary">{item.titre || item.nom}</p>
+                        <div className="p-8 space-y-8">
+                            {/* Détails de l'élément */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="border border-gray-200 dark:border-gray-800 p-4 rounded bg-gray-50 dark:bg-[#161616]">
+                                    <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Désignation</p>
+                                    <p className="font-bold text-gray-900 dark:text-white uppercase">{item.titre || item.nom}</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-base-muted">Prix unitaire</p>
-                                    <p className="font-semibold text-primary-500">
+                                <div className="border border-gray-200 dark:border-gray-800 p-4 rounded bg-gray-50 dark:bg-[#161616]">
+                                    <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Valeur Unitaire</p>
+                                    <p className="font-bold text-primary-500">
                                         {item.prix.toLocaleString()} FCFA
-                                        {type === 'package' && <span className="text-sm font-normal text-base-muted"> / mois</span>}
+                                        {type === 'package' && <span className="text-xs font-mono text-gray-500 ml-1">/ MOIS</span>}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Sélection de la durée (pour les packs) */}
+                            {/* Sélection de la durée */}
                             {type === 'package' && durations.length > 1 && (
-                                <div>
-                                    <label className="block text-sm font-medium text-base-primary mb-2">
-                                        Durée de la souscription
+                                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                                    <label className="flex items-center gap-2 text-xs font-mono font-bold text-gray-900 dark:text-white uppercase tracking-widest mb-4">
+                                        <Terminal size={14} className="text-primary-500" />
+                                        Durée d'engagement
                                     </label>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         {durations.map((duration) => {
                                             const isSelected = data.duration_months === duration;
                                             const total = item.prix * duration;
@@ -91,16 +104,17 @@ export default function Create({ type, item, durations, title, flash }) {
                                                     key={duration}
                                                     type="button"
                                                     onClick={() => setData('duration_months', duration)}
-                                                    className={`p-3 rounded-xl border-2 transition-all text-left ${
+                                                    className={`p-4 rounded border transition-all text-left relative overflow-hidden ${
                                                         isSelected
-                                                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20 ring-2 ring-primary-500/20 animate-bounce'
-                                                            : 'border-base hover:border-primary-300'
+                                                            ? 'border-primary-500 bg-primary-500/5 dark:bg-primary-900/20'
+                                                            : 'border-gray-200 dark:border-gray-800 hover:border-primary-400/50'
                                                     }`}
                                                 >
-                                                    <div className="font-semibold text-base-primary">
-                                                        {duration} mois
+                                                    {isSelected && <div className="absolute top-0 right-0 w-2 h-full bg-primary-500" />}
+                                                    <div className="font-bold text-lg text-gray-900 dark:text-white uppercase">
+                                                        {duration} MOIS
                                                     </div>
-                                                    <div className="text-sm text-base-muted"> 
+                                                    <div className="text-xs font-mono text-gray-500 mt-1"> 
                                                         {total.toLocaleString()} FCFA
                                                     </div>
                                                 </button>
@@ -110,106 +124,110 @@ export default function Create({ type, item, durations, title, flash }) {
                                 </div>
                             )}
 
-                            {/* Résumé */}
-                            <div className="p-4 bg-primary-50 dark:bg-primary-950/20 rounded-xl border border-primary-200 dark:border-primary-800">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="text-sm text-base-muted">Total à payer</p>
-                                        <p className="text-2xl font-bold text-primary-500">
-                                            {totalAmount.toLocaleString()} FCFA
-                                        </p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-sm text-base-muted">
-                                            {type === 'package' ? `${data.duration_months} mois` : 'Service unique'}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Formulaire de paiement */}
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                               {/* AJOUTE CE BLOC ICI : */}
+                            {/* Formulaire & Résumé */}
+                            <form onSubmit={handleSubmit} className="pt-8 border-t border-gray-200 dark:border-gray-800">
+                                
+                                {/* Messages */}
                                 {flash?.error && (
-                                    <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium animate-pulse text-center">
-                                        ❌ {flash.error}
+                                    <div className="mb-6 p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400 font-mono text-xs uppercase tracking-wider">
+                                        [ERREUR] {flash.error}
                                     </div>
                                 )}
                                 {flash?.info && (
-                                    <div className="p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-medium">
-                                        ℹ️ {flash.info}
+                                    <div className="mb-6 p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 font-mono text-xs uppercase tracking-wider">
+                                        [INFO] {flash.info}
                                     </div>
                                 )}
-                                <div className="border-t border-base pt-4">
-                                    <h3 className="font-semibold text-base-primary mb-3">
-                                        Informations de paiement
-                                    </h3>
+
+                                <div className="grid md:grid-cols-[1fr_300px] gap-8">
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-base-primary mb-1">
-                                                Opérateur Mobile Money
-                                            </label>
-                                            <select
-                                                value={data.operator}
-                                                onChange={(e) => setData('operator', e.target.value)}
-                                                className="w-full rounded-xl border border-base bg-background px-4 py-2 focus:border-primary-500 focus:ring-primary-500"
-                                                required
-                                            >
-                                                <option value="MTN">MTN Mobile Money</option>
-                                                <option value="ORANGE">Orange Money</option>
-                                            </select>
-                                            {errors.operator && <p className="text-sm text-red-500 mt-1">{errors.operator}</p>}
+                                    {/* Inputs */}
+                                    <div className="space-y-6">
+                                        <h3 className="flex items-center gap-2 text-xs font-mono font-bold text-gray-900 dark:text-white uppercase tracking-widest mb-4">
+                                            <CreditCard size={14} className="text-primary-500" />
+                                            Données de Facturation
+                                        </h3>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                                                    Réseau Mobile Money
+                                                </label>
+                                                <select
+                                                    value={data.operator}
+                                                    onChange={(e) => setData('operator', e.target.value)}
+                                                    className="w-full bg-gray-50 dark:bg-[#161616] border border-gray-200 dark:border-gray-800 rounded px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-primary-500 transition-colors uppercase font-mono"
+                                                    required
+                                                >
+                                                    <option value="MTN">MTN Mobile Money</option>
+                                                    <option value="ORANGE">Orange Money</option>
+                                                </select>
+                                                {errors.operator && <p className="text-xs text-red-500 mt-1 font-mono uppercase">{errors.operator}</p>}
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                                                    Numéro de Compte
+                                                </label>
+                                                <input
+                                                    type="tel"
+                                                    value={data.phone_number}
+                                                    onChange={(e) => setData('phone_number', e.target.value)}
+                                                    placeholder="6XXXXXXXX"
+                                                    className="w-full bg-gray-50 dark:bg-[#161616] border border-gray-200 dark:border-gray-800 rounded px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-primary-500 transition-colors font-mono"
+                                                    required
+                                                />
+                                                <p className="text-[10px] text-gray-500 mt-2 font-mono uppercase tracking-wider">
+                                                    Format Requis: 6XXXXXXXX (9 Chiffres)
+                                                </p>
+                                                {errors.phone_number && <p className="text-xs text-red-500 mt-1 font-mono uppercase">{errors.phone_number}</p>}
+                                            </div>
                                         </div>
+
+                                        <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-[#161616] border border-gray-200 dark:border-gray-800 rounded">
+                                            <Shield className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-widest mb-1">
+                                                    Protocole Sécurisé
+                                                </p>
+                                                <p className="text-[11px] font-mono text-gray-500 uppercase leading-relaxed">
+                                                    Une notification push sera envoyée sur votre appareil mobile. Entrez votre code PIN pour valider la transaction de manière sécurisée.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Résumé & Bouton */}
+                                    <div className="bg-gray-100 dark:bg-[#0A0A0A] p-6 rounded border border-gray-200 dark:border-gray-800 flex flex-col justify-between">
                                         <div>
-                                            <label className="block text-sm font-medium text-base-primary mb-1">
-                                                Numéro de téléphone
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                value={data.phone_number}
-                                                onChange={(e) => setData('phone_number', e.target.value)}
-                                                placeholder="6XXXXXXXX"
-                                                className="w-full rounded-xl border border-base bg-background px-4 py-2 focus:border-primary-500 focus:ring-primary-500"
-                                                required
-                                            />
-                                            <p className="text-xs text-base-muted mt-1">
-                                                Format: 6XXXXXXXX (9 chiffres)
+                                            <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Montant Total Évalué</p>
+                                            <p className="text-3xl font-bold text-primary-500 font-display">
+                                                {totalAmount.toLocaleString()} <span className="text-xl">FCFA</span>
                                             </p>
-                                            {errors.phone_number && <p className="text-sm text-red-500 mt-1">{errors.phone_number}</p>}
+                                            <p className="text-[10px] font-mono text-gray-500 uppercase mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
+                                                Engagement: {type === 'package' ? `${data.duration_months} MOIS` : 'SERVICE UNIQUE'}
+                                            </p>
                                         </div>
+                                        
+                                        <button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="mt-8 w-full bg-primary-500 text-[#0A0A0A] font-bold font-mono text-sm uppercase tracking-widest py-4 px-4 rounded flex items-center justify-center gap-2 hover:bg-primary-400 transition-colors disabled:opacity-50 group"
+                                        >
+                                            {processing ? (
+                                                <span className="flex items-center gap-2">
+                                                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span>
+                                                    TRAITEMENT...
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-2 group-hover:scale-105 transition-transform">
+                                                    <Zap size={16} />
+                                                    SOUMETTRE
+                                                </span>
+                                            )}
+                                        </button>
                                     </div>
-                                </div>
 
-                                <div className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
-                                    <Shield className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
-                                            Paiement sécurisé
-                                        </p>
-                                        <p className="text-sm text-yellow-700 dark:text-yellow-500">
-                                            Vous recevrez un prompt sur votre téléphone pour confirmer le paiement.
-                                        </p>
-                                    </div>
                                 </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="w-full btn btn-primary py-4 text-base font-semibold transition-all duration-300 hover:scale-[1.02]"
-                                >
-                                    {processing ? (
-                                        <span className="flex items-center gap-2 justify-center">
-                                            <span className="animate-spin">⏳</span>
-                                            Traitement en cours...
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center justify-center gap-2">
-                                            <CreditCard size={18} />
-                                            Payer {totalAmount.toLocaleString()} FCFA
-                                        </span>
-                                    )}
-                                </button>
                             </form>
                         </div>
                     </div>

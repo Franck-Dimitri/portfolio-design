@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Inertia\Inertia; 
+use Illuminate\Support\Facades\DB;
 
 
 class PaymentController extends Controller
@@ -39,6 +40,17 @@ class PaymentController extends Controller
         // Vérifier que la souscription est en attente
         if ($subscription->status !== 'pending') {
             return back()->with('error', 'Cette souscription n\'est pas en attente de paiement.');
+        }
+
+        // Vérifier s'il y a déjà un paiement en attente récent (moins de 15 minutes)
+        $existingPayment = Payment::where('subscription_id', $subscription->id)
+            ->where('status', 'pending')
+            ->where('created_at', '>=', now()->subMinutes(15))
+            ->first();
+
+        if ($existingPayment) {
+            return redirect()->route('payment.waiting', $existingPayment->transaction_reference)
+                            ->with('info', 'Vous avez déjà un paiement en cours d\'initialisation pour cette souscription.');
         }
 
         // Déterminer le montant total
@@ -94,6 +106,7 @@ class PaymentController extends Controller
             'amount'       => $amount,
             'currency'     => 'XAF',
             'description'  => 'Paiement pour ' . ($subscription->service_package_id ? 'Pack ' . $subscription->servicePackage->titre : 'Service ' . $subscription->service->nom),
+            'notify_url'   => url('/payment/webhook'), // URL du webhook
         ]);
 
         $responseData = $payinResponse->json();
@@ -168,23 +181,32 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Paiement non trouvé'], 404);
         }
 
-        // Mettre à jour le statut du paiement
-        $payment->status = $status === 'SUCCESS' ? 'success' : 'failed';
-        $payment->gateway_response = json_encode($payload);
-        $payment->save();
+        DB::beginTransaction();
+        try {
+            // Mettre à jour le statut du paiement
+            $payment->status = $status === 'SUCCESS' ? 'success' : 'failed';
+            $payment->gateway_response = json_encode($payload);
+            $payment->save();
 
-        // Si le paiement est réussi, activer la souscription
-        if ($payment->status === 'success') {
-            $subscription = $payment->subscription;
-            $subscription->status = 'active';
-            $subscription->starts_at = now();
-            
-            // Si c'est un pack, calculer la date de fin
-            if ($subscription->service_package_id) {
-                $subscription->ends_at = now()->addMonths($subscription->duration_months);
+            // Si le paiement est réussi, activer la souscription
+            if ($payment->status === 'success') {
+                $subscription = $payment->subscription;
+                $subscription->status = 'active';
+                $subscription->starts_at = now();
+                
+                // Si c'est un pack, calculer la date de fin
+                if ($subscription->service_package_id) {
+                    $subscription->ends_at = now()->addMonths($subscription->duration_months);
+                }
+                
+                $subscription->save();
             }
             
-            $subscription->save();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Erreur webhook paiement: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur interne lors du traitement'], 500);
         }
 
         return response()->json(['success' => true]);
@@ -212,5 +234,15 @@ class PaymentController extends Controller
         }
         
         return $phone;
+    }
+
+    public function success()
+    {
+        return Inertia::render('Payment/Success');
+    }
+
+    public function failed()
+    {
+        return Inertia::render('Payment/Failed');
     }
 }

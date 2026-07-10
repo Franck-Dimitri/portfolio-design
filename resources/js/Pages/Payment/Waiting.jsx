@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import MainLayout from '@/Layouts/MainLayout';
-import { Clock, Shield, Smartphone, ArrowLeft, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, Shield, Smartphone, ArrowLeft, CheckCircle, XCircle, AlertCircle, Terminal, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 
 export default function Waiting({ payment, reference, redirectUrl }) {
@@ -10,12 +10,11 @@ export default function Waiting({ payment, reference, redirectUrl }) {
     const [checkCount, setCheckCount] = useState(0);
     const { flash } = usePage().props;
 
-    // Vérifier le statut du paiement toutes les 5 secondes
     useEffect(() => {
         const interval = setInterval(() => {
             setCheckCount(prev => prev + 1);
             
-            axios.get(`/payment/check-status/${reference}`)
+            axios.get(`/payment/check/${reference}`)
                 .then(response => {
                     const newStatus = response.data.status;
                     setStatus(newStatus);
@@ -31,7 +30,6 @@ export default function Waiting({ payment, reference, redirectUrl }) {
                 });
         }, 5000);
 
-        // Compte à rebours
         const timer = setInterval(() => {
             setCountdown(prev => {
                 if (prev <= 1) {
@@ -48,7 +46,6 @@ export default function Waiting({ payment, reference, redirectUrl }) {
         };
     }, [reference, redirectUrl]);
 
-    // Rediriger automatiquement après le compte à rebours si toujours en attente
     useEffect(() => {
         if (countdown === 0 && status === 'pending') {
             window.location.href = '/payment/failed';
@@ -64,7 +61,7 @@ export default function Waiting({ payment, reference, redirectUrl }) {
     const getStatusIcon = () => {
         switch (status) {
             case 'pending':
-                return <Clock className="w-16 h-16 text-yellow-500 animate-pulse" />;
+                return <RefreshCw className="w-16 h-16 text-yellow-500 animate-spin-slow" />;
             case 'success':
                 return <CheckCircle className="w-16 h-16 text-green-500" />;
             case 'failed':
@@ -78,26 +75,26 @@ export default function Waiting({ payment, reference, redirectUrl }) {
         switch (status) {
             case 'pending':
                 return {
-                    title: 'Confirmation en cours',
-                    description: 'Veuillez confirmer le paiement sur votre téléphone. Vous serez redirigé automatiquement.',
+                    title: 'ATTENTE DE CONFIRMATION',
+                    description: 'Veuillez valider le prompt USSD sur votre appareil mobile. Le système interroge la passerelle...',
                     color: 'yellow'
                 };
             case 'success':
                 return {
-                    title: 'Paiement réussi !',
-                    description: 'Votre souscription a été activée avec succès.',
+                    title: 'TRANSACTION VALIDÉE',
+                    description: 'Votre paiement a été traité avec succès. Initialisation des services...',
                     color: 'green'
                 };
             case 'failed':
                 return {
-                    title: 'Paiement échoué',
-                    description: 'Le paiement n\'a pas pu être traité. Veuillez réessayer.',
+                    title: 'ÉCHEC DE LA TRANSACTION',
+                    description: 'Le paiement n\'a pas pu être traité ou a expiré.',
                     color: 'red'
                 };
             default:
                 return {
-                    title: 'Vérification en cours',
-                    description: 'Nous vérifions le statut de votre paiement...',
+                    title: 'DIAGNOSTIC EN COURS',
+                    description: 'Analyse du statut de la transaction...',
                     color: 'gray'
                 };
         }
@@ -107,180 +104,168 @@ export default function Waiting({ payment, reference, redirectUrl }) {
 
     return (
         <MainLayout>
-            <Head title="Confirmation de paiement" />
+            <Head title="Traitement du Paiement | Console" />
 
-            <div className="pt-24 min-h-screen bg-gradient-to-b from-muted/30 to-background">
-                <div className="container-main max-w-2xl mx-auto px-4 py-8">
-                    {/* Message flash */}
+            <div className="pt-24 pb-16 min-h-screen bg-gray-50 dark:bg-[#0A0A0A] text-gray-800 dark:text-gray-300 transition-colors duration-300">
+                <div className="container-main max-w-3xl mx-auto px-4 py-8">
+                    
+                    {/* Header */}
+                    <header className="mb-8">
+                        <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest mb-6">
+                            <span className="text-gray-400 dark:text-gray-600">SYS &gt;</span>
+                            <span className="text-primary-500">PAIEMENT</span>
+                            <span className="text-gray-400 dark:text-gray-600">&gt;</span>
+                            <span className="text-gray-500 animate-pulse">ATTENTE</span>
+                        </div>
+                        <h1 className="text-4xl font-bold font-display text-gray-900 dark:text-white leading-tight mb-2 tracking-tight uppercase">
+                            TRAITEMENT EN COURS
+                        </h1>
+                        <p className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+                            Ne fermez pas cette fenêtre
+                        </p>
+                    </header>
+
                     {flash?.error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium text-center">
-                            ❌ {flash.error}
+                        <div className="mb-6 p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400 font-mono text-xs uppercase tracking-wider">
+                            [ERREUR] {flash.error}
+                        </div>
+                    )}
+                    {flash?.info && (
+                        <div className="mb-6 p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 font-mono text-xs uppercase tracking-wider">
+                            [SYSTÈME] {flash.info}
                         </div>
                     )}
 
-                    <div className="bg-elevated rounded-2xl shadow-lg overflow-hidden border border-base">
-                        {/* En-tête */}
-                        <div className="bg-gradient-to-r from-primary-500/10 to-primary-600/5 p-6 border-b border-base">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-full">
-                                    <Smartphone className="w-6 h-6 text-primary-500" />
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-bold text-base-primary">
-                                        Confirmation de paiement
-                                    </h1>
-                                    <p className="text-base-muted">
-                                        Vérification en cours
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-6">
-                            {/* Statut principal */}
-                            <div className="text-center py-6">
-                                <div className="flex justify-center mb-4">
+                    <div className="bg-white dark:bg-[#111] rounded border border-gray-200 dark:border-gray-800 relative shadow-xl overflow-hidden">
+                        {/* Blueprint Corner */}
+                        <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-primary-500 z-10 m-2"></div>
+                        
+                        <div className="p-8">
+                            
+                            {/* Main Status Display */}
+                            <div className="text-center py-8 border-b border-gray-200 dark:border-gray-800">
+                                <div className="flex justify-center mb-6">
                                     {getStatusIcon()}
                                 </div>
-                                <h2 className={`text-2xl font-bold mb-2 ${
-                                    status === 'pending' ? 'text-yellow-600' :
-                                    status === 'success' ? 'text-green-600' :
-                                    status === 'failed' ? 'text-red-600' :
-                                    'text-gray-600'
+                                <h2 className={`text-2xl font-bold font-display uppercase tracking-wider mb-3 ${
+                                    status === 'pending' ? 'text-yellow-600 dark:text-yellow-500' :
+                                    status === 'success' ? 'text-green-600 dark:text-green-500' :
+                                    status === 'failed' ? 'text-red-600 dark:text-red-500' :
+                                    'text-gray-600 dark:text-gray-400'
                                 }`}>
                                     {statusInfo.title}
                                 </h2>
-                                <p className="text-base-muted max-w-md mx-auto">
+                                <p className="text-sm font-mono text-gray-500 max-w-md mx-auto uppercase leading-relaxed">
                                     {statusInfo.description}
                                 </p>
                             </div>
 
-                            {/* Détails du paiement */}
-                            <div className="bg-muted/30 rounded-xl p-4 space-y-3">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <p className="text-xs text-base-muted">Référence</p>
-                                        <p className="text-sm font-mono font-semibold text-base-primary">
-                                            {reference}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-base-muted">Montant</p>
-                                        <p className="text-sm font-bold text-primary-500">
-                                            {payment.amount.toLocaleString()} {payment.currency}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-base-muted">Méthode</p>
-                                        <p className="text-sm font-semibold text-base-primary">
-                                            {paymentMethodLabel}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-base-muted">Statut</p>
-                                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                                            status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                            status === 'success' ? 'bg-green-100 text-green-700' :
-                                            'bg-red-100 text-red-700'
-                                        }`}>
-                                            {status === 'pending' ? 'En attente' :
-                                             status === 'success' ? 'Réussi' :
-                                             'Échoué'}
-                                        </span>
+                            {/* Data Table (Terminal Style) */}
+                            <div className="py-8 grid gap-4">
+                                <h3 className="flex items-center gap-2 text-[10px] font-mono font-bold text-gray-900 dark:text-white uppercase tracking-widest mb-2">
+                                    <Terminal size={14} className="text-primary-500" />
+                                    Données de Transaction
+                                </h3>
+                                
+                                <div className="bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-gray-800 p-4 rounded font-mono text-xs">
+                                    <div className="grid grid-cols-2 gap-y-4">
+                                        <div className="text-gray-500 uppercase tracking-widest">Référence ID:</div>
+                                        <div className="text-gray-900 dark:text-white font-bold">{reference}</div>
+                                        
+                                        <div className="text-gray-500 uppercase tracking-widest">Opérateur:</div>
+                                        <div className="text-gray-900 dark:text-white">{paymentMethodLabel.toUpperCase()}</div>
+                                        
+                                        <div className="text-gray-500 uppercase tracking-widest">Montant Autorisé:</div>
+                                        <div className="text-primary-500 font-bold">{payment.amount.toLocaleString()} {payment.currency}</div>
+                                        
+                                        <div className="text-gray-500 uppercase tracking-widest">Statut Logique:</div>
+                                        <div>
+                                            <span className={`px-2 py-1 bg-gray-200 dark:bg-gray-800 rounded ${
+                                                status === 'pending' ? 'text-yellow-600 dark:text-yellow-500' :
+                                                status === 'success' ? 'text-green-600 dark:text-green-500' :
+                                                'text-red-600 dark:text-red-500'
+                                            }`}>
+                                                {status.toUpperCase()}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Barre de progression (temps restant) */}
+                            {/* Progress & Countdown */}
                             {status === 'pending' && (
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-base-muted">Temps restant</span>
-                                        <span className="font-semibold text-base-primary">
-                                            {countdown} secondes
+                                <div className="space-y-4 py-4 border-t border-gray-200 dark:border-gray-800">
+                                    <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest">
+                                        <span className="text-gray-500">Timeout Requis</span>
+                                        <span className="font-bold text-primary-500">
+                                            {countdown} SECONDES
                                         </span>
                                     </div>
-                                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className="w-full h-1 bg-gray-200 dark:bg-gray-800 overflow-hidden">
                                         <div 
-                                            className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all duration-1000 ease-linear rounded-full"
+                                            className="h-full bg-primary-500 transition-all duration-1000 ease-linear"
                                             style={{ width: `${(countdown / 120) * 100}%` }}
                                         />
                                     </div>
-                                    <p className="text-xs text-base-muted text-center">
-                                        {checkCount > 0 && `Vérification ${checkCount} fois`}
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Instructions */}
-                            {status === 'pending' && (
-                                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                                    <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-800 dark:text-blue-400">
-                                            Instructions
-                                        </p>
-                                        <ul className="text-sm text-blue-700 dark:text-blue-500 space-y-1 list-disc list-inside">
-                                            <li>Vérifiez votre téléphone pour confirmer le paiement</li>
-                                            <li>Entrez votre code PIN Mobile Money</li>
-                                            <li>Attendez la confirmation automatique</li>
-                                        </ul>
+                                    <div className="flex justify-between text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                                        <span>Ping: {checkCount}</span>
+                                        <span className="animate-pulse">ÉCOUTE DU RÉSEAU...</span>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Boutons d'action */}
-                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-base">
+                            {/* Actions */}
+                            <div className="mt-8 flex flex-col sm:flex-row gap-4">
                                 {status === 'pending' ? (
                                     <>
                                         <button
                                             onClick={() => window.location.href = '/'}
-                                            className="flex-1 btn btn-secondary"
+                                            className="flex-1 flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded font-mono text-xs font-bold uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                         >
-                                            <ArrowLeft size={18} className="mr-2" />
-                                            Retour à l'accueil
+                                            <ArrowLeft size={14} />
+                                            ANNULER
                                         </button>
                                         <button
                                             onClick={() => {
-                                                // Forcer une vérification manuelle
-                                                axios.get(`/payment/check-status/${reference}`)
+                                                axios.get(`/payment/check/${reference}`)
                                                     .then(response => {
                                                         setStatus(response.data.status);
                                                     });
                                             }}
-                                            className="flex-1 btn btn-primary"
+                                            className="flex-1 flex items-center justify-center gap-2 bg-primary-500 text-[#0A0A0A] py-3 px-4 rounded font-mono text-xs font-bold uppercase tracking-widest hover:bg-primary-400 transition-colors"
                                         >
-                                            <Clock size={18} className="mr-2" />
-                                            Vérifier maintenant
+                                            <RefreshCw size={14} />
+                                            FORCER ACTUALISATION
                                         </button>
                                     </>
                                 ) : status === 'success' ? (
                                     <button
-                                        onClick={() => window.location.href = '/dashboard'}
-                                        className="w-full btn btn-primary"
+                                        onClick={() => window.location.href = '/admin/dashboard'}
+                                        className="w-full bg-primary-500 text-[#0A0A0A] py-3 px-4 rounded font-mono text-xs font-bold uppercase tracking-widest hover:bg-primary-400 transition-colors text-center block"
                                     >
-                                        Voir mon tableau de bord
+                                        ACCÉDER AU TABLEAU DE BORD
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => window.location.href = '/'}
-                                        className="w-full btn btn-primary"
+                                        className="w-full border border-primary-500 text-primary-500 py-3 px-4 rounded font-mono text-xs font-bold uppercase tracking-widest hover:bg-primary-500 hover:text-[#0A0A0A] transition-colors"
                                     >
-                                        Réessayer
+                                        RECOMMENCER LA PROCÉDURE
                                     </button>
                                 )}
                             </div>
+
                         </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="mt-6 text-center">
-                        <p className="text-xs text-base-muted">
-                            Une question ? Contactez notre support
-                        </p>
-                    </div>
                 </div>
             </div>
+            
+            <style jsx global>{`
+                .animate-spin-slow {
+                    animation: spin 3s linear infinite;
+                }
+            `}</style>
         </MainLayout>
     );
 }
