@@ -141,6 +141,8 @@ Route::middleware(['auth'])->group(function () {
     // Suivi Paiement
     Route::get('/payment/waiting/{reference}', [PaymentController::class, 'waiting'])->name('payment.waiting');
     Route::get('/payment/check/{reference}', [PaymentController::class, 'checkStatus'])->name('payment.check');
+    Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/failed', [PaymentController::class, 'failed'])->name('payment.failed');
 });
 
 // Webhook intact

@@ -75,6 +75,12 @@ class SubscriptionController extends Controller
         if ($type === 'package') {
             $package = ServicePackage::where('slug', $slug)->firstOrFail();
             
+            // Supprimer les anciennes souscriptions en attente pour ce pack et cet utilisateur
+            Subscription::where('user_id', Auth::id())
+                ->where('service_package_id', $package->id)
+                ->where('status', 'pending')
+                ->delete();
+
             $subscription = Subscription::create([
                 'user_id' => Auth::id(),
                 'service_package_id' => $package->id,
@@ -97,6 +103,12 @@ class SubscriptionController extends Controller
         if ($type === 'service') {
             $service = Service::where('slug', $slug)->firstOrFail();
             
+            // Supprimer les anciennes souscriptions en attente pour ce service et cet utilisateur
+            Subscription::where('user_id', Auth::id())
+                ->where('service_id', $service->id)
+                ->where('status', 'pending')
+                ->delete();
+
             $subscription = Subscription::create([
                 'user_id' => Auth::id(),
                 'service_package_id' => null,
