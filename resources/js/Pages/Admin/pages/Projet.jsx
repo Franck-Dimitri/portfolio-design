@@ -123,8 +123,9 @@ export default function Index({ projects = [], cathegories = [], editProject = n
         }
 
         if (editMode) {
-            // Mise à jour
-            put(route('admin.projects.update', currentProjectId), {
+            // Mise à jour (Laravel requiert POST avec _method=PUT pour gérer multipart/form-data)
+            formData.append('_method', 'PUT');
+            post(route('admin.projects.update', currentProjectId), {
                 data: formData,
                 forceFormData: true,
                 onSuccess: () => {
