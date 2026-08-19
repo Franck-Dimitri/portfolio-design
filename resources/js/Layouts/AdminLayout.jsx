@@ -1,30 +1,22 @@
-import { Link } from '@inertiajs/react'
-import { useState } from 'react'
+import { Head } from '@inertiajs/react'
 import { Sidebar } from '@/Pages/Admin/Sidebar'
 import { Topbar } from '@/Pages/Admin/Topbar'
 
-import { ThemeSelector } from '@/Components/ThemeToggle'
-
-
-
-
-export default function AdminLayout({ children }) {
-    const [open, setOpen] = useState(true)
-
+export default function AdminLayout({ children, title = 'Administration' }) {
     return (
-        <div className="min-h-screen bg-base flex">
+        <div className="min-h-screen bg-[#080808] text-gray-200 flex font-sans selection:bg-primary-500 selection:text-black">
+            <Head title={`${title} | Admin DCA`} />
+            
+            {/* SIDEBAR */}
             <Sidebar />
 
-            {/* MAIN */}
-            <div className="flex-1 flex flex-col">
-
+            {/* MAIN CONTENT AREA */}
+            <div className="flex-1 flex flex-col min-w-0">
                 <Topbar />
 
-                {/* CONTENT */}
-                <main className="p-6 animate-fade-in-up">
+                <main className="p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto animate-fade-in-up">
                     {children}
                 </main>
-
             </div>
         </div>
     )

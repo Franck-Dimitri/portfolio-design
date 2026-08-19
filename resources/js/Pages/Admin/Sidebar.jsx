@@ -1,25 +1,32 @@
-import { ThemeSelector } from '@/Components/ThemeToggle'
+// resources/js/Pages/Admin/Sidebar.jsx
 import { Link, usePage } from '@inertiajs/react'
 import {
     LayoutDashboard,
     FolderKanban,
-    Settings,
-    Package,
-    FileText,
     PenTool,
-    Menu
+    Package,
+    Users,
+    FileText,
+    Mail,
+    UserCheck,
+    Menu,
+    ExternalLink,
+    ChevronLeft,
+    ChevronRight,
+    Terminal,
+    Sparkles
 } from "lucide-react"
 import { useState } from 'react'
 
-
 const NAV_LINKS = [
-    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Projets', href: '/admin/projects', icon: FolderKanban },
-    { label: 'Services', href: '/admin/services', icon: PenTool },
-    { label: 'Packages', href: '/admin/packages', icon: Package },
-    { label: 'Blog', href: '/admin/blogs', icon: FileText },
-    { label: 'Paramètres', href: '/admin/parametres', icon: Settings },
-
+    { label: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'SOUSCRIPTIONS', href: '/admin/souscriptions', icon: Users },
+    { label: 'PROJETS', href: '/admin/projects', icon: FolderKanban },
+    { label: 'SERVICES', href: '/admin/services', icon: PenTool },
+    { label: 'PACKS & TARIFS', href: '/admin/packages', icon: Package },
+    { label: 'BLOG', href: '/admin/blogs', icon: FileText },
+    { label: 'MESSAGES', href: '/admin/contacts', icon: Mail },
+    { label: 'PROFIL', href: '/profile', icon: UserCheck },
 ]
 
 export function Sidebar() {
@@ -28,66 +35,86 @@ export function Sidebar() {
 
     return (
         <aside
-            className={`h-screen 
-            bg-elevated border-r border-base
-            transition-all duration-300
-            ${open ? 'w-64' : 'w-20'}`}
+            className={`min-h-screen bg-[#0A0A0A] border-r border-gray-800 transition-all duration-300 flex flex-col justify-between z-30 sticky top-0 ${
+                open ? 'w-64' : 'w-20'
+            }`}
         >
+            <div>
+                {/* ── HEADER LOGO ── */}
+                <div className="h-16 px-4 border-b border-gray-800 flex items-center justify-between">
+                    <Link href="/admin/dashboard" className="flex items-center gap-3 group overflow-hidden">
+                        <div className="w-9 h-9 border border-primary-500 bg-primary-500/10 text-primary-500 flex items-center justify-center font-mono font-bold text-xs shrink-0 group-hover:bg-primary-500 group-hover:text-black transition-colors">
+                            DCA
+                        </div>
 
-            {/* HEADER */}
-            <div className="flex items-center justify-between p-4 border-b border-base">
+                        {open && (
+                            <div className="flex flex-col min-w-0">
+                                <span className="font-display font-bold text-sm tracking-wider uppercase text-white truncate">
+                                    DIM'S <span className="text-primary-500 font-mono text-xs">// ADMIN</span>
+                                </span>
+                                <span className="text-[9px] font-mono text-gray-500 tracking-widest uppercase truncate">
+                                    SYS_CONSOLE v2.0
+                                </span>
+                            </div>
+                        )}
+                    </Link>
 
-                <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary-500 text-white font-bold">
-                        DCA
-                    </div>
+                    <button
+                        onClick={() => setOpen(!open)}
+                        className="p-1.5 border border-gray-800 hover:border-primary-500 text-gray-400 hover:text-white transition-colors"
+                        title={open ? "Réduire le menu" : "Agrandir le menu"}
+                    >
+                        {open ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                    </button>
+                </div>
 
-                    {open && (
-                        <span className="font-bold text-base-primary">
-                            Dim's <span className="text-gradient">Creative Academy</span>
-                        </span>
-                    )}
-                </Link>
+                {/* ── NAVIGATION ── */}
+                <nav className="p-3 space-y-1">
+                    {NAV_LINKS.map((link) => {
+                        const Icon = link.icon
+                        const isActive = url.startsWith(link.href)
 
-                <button
-                    onClick={() => setOpen(!open)}
-                    className="p-2 rounded-lg hover:bg-muted transition"
-                >
-                    <Menu size={18} />
-                </button>
+                        return (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`
+                                    flex items-center gap-3 px-3 py-2.5 border transition-all text-xs font-mono font-bold tracking-wider uppercase group
+                                    ${isActive
+                                        ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                                        : 'border-transparent text-gray-400 hover:text-white hover:bg-[#141414] hover:border-gray-800'
+                                    }
+                                `}
+                                title={!open ? link.label : undefined}
+                            >
+                                <Icon size={16} className={`shrink-0 ${isActive ? 'text-primary-500' : 'group-hover:text-primary-400'}`} />
+
+                                {open && (
+                                    <span className="truncate flex-1">
+                                        {link.label}
+                                    </span>
+                                )}
+
+                                {open && isActive && (
+                                    <span className="w-1.5 h-1.5 bg-primary-500 shrink-0" />
+                                )}
+                            </Link>
+                        )
+                    })}
+                </nav>
             </div>
 
-            {/* NAVIGATION */}
-            <nav className="flex flex-col gap-3 p-3">
-
-                {NAV_LINKS.map((link) => {
-                    const Icon = link.icon
-                    const isActive = url.startsWith(link.href)
-
-                    return (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={`
-                                flex items-center gap-3 px-3 py-2 rounded-lg border-t  border-primary-500/10
-                                transition-all duration-200
-                                ${isActive
-                                    ? 'bg-primary-500/10 text-primary-400 shadow-orange-xs'
-                                    : 'text-base-secondary hover:bg-muted hover:text-base-primary'
-                                }
-                            `}
-                        >
-                            <Icon size={18} />
-
-                            {open && (
-                                <span className="text-sm font-medium">
-                                    {link.label}
-                                </span>
-                            )}
-                        </Link>
-                    )
-                })}
-            </nav>
+            {/* ── FOOTER SIDEBAR ── */}
+            <div className="p-3 border-t border-gray-800 bg-[#0c0c0c]">
+                <Link
+                    href="/"
+                    target="_blank"
+                    className="flex items-center gap-2 px-3 py-2 text-[10px] font-mono font-bold uppercase tracking-widest text-gray-400 hover:text-primary-400 border border-gray-800 hover:border-primary-500/50 transition-colors w-full justify-center"
+                >
+                    <ExternalLink size={12} />
+                    {open && <span>VOIR LE SITE</span>}
+                </Link>
+            </div>
         </aside>
     )
 }

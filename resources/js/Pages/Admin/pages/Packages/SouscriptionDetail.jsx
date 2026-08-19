@@ -1,375 +1,450 @@
-// resources/js/Pages/Admin/Packages/SouscriptionDetail.jsx
+// resources/js/Pages/Admin/pages/Packages/SouscriptionDetail.jsx
 import { useState, useRef } from 'react'
-import { useForm, router } from '@inertiajs/react'
+import { useForm, Link, router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import {
     ArrowLeft, User, Mail, Phone, MessageCircle, Building2,
     Package, CreditCard, Clock, CheckCircle2, Upload, FileText,
     Download, Send, AlertCircle, Calendar, RefreshCw, X,
-    Paperclip, MessageSquare, Star, Zap
+    Paperclip, MessageSquare, Star, Zap, Terminal, Focus, ChevronRight, Shield
 } from 'lucide-react'
 
-const formatPrix     = (v) => new Intl.NumberFormat('fr-FR').format(v) + ' FCFA'
+const formatPrix = (v) => new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'
 const formatDateTime = (d) => d ? new Date(d).toLocaleString('fr-FR', {
     day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
 }) : '—'
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—'
 
 const STATUTS_PROD = [
-    { value: 'non_demarre', label: 'Non démarré', color: 'text-[var(--text-muted)]' },
-    { value: 'en_cours',    label: 'En cours',    color: 'text-blue-500'            },
-    { value: 'en_revision', label: 'En révision', color: 'text-amber-500'           },
-    { value: 'termine',     label: 'Terminé',     color: 'text-green-500'           },
-    { value: 'archive',     label: 'Archivé',     color: 'text-[var(--text-subtle)]'},
+    { value: 'non_demarre', label: 'Non démarré' },
+    { value: 'en_cours',    label: 'En cours' },
+    { value: 'en_revision', label: 'En révision' },
+    { value: 'termine',     label: 'Terminé' },
+    { value: 'archive',     label: 'Archivé' },
 ]
 
-// ── Section card ──────────────────────────────────────────────
-function Section({ title, icon: Icon, children, className = '' }) {
-    return (
-        <div className={`card p-5 ${className}`}>
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[var(--border-base)]">
-                <div className="w-7 h-7 rounded-lg bg-primary-500/10 flex items-center justify-center">
-                    <Icon size={14} className="text-primary-500" />
-                </div>
-                <h2 className="font-semibold text-sm text-[var(--text-primary)]">{title}</h2>
-            </div>
-            {children}
-        </div>
-    )
-}
+export default function SouscriptionDetail({ souscription }) {
+    if (!souscription) return null
 
-// ── Info row ──────────────────────────────────────────────────
-function InfoRow({ label, value, mono = false }) {
-    return (
-        <div className="flex justify-between items-start gap-4 py-2 border-b border-[var(--border-base)] last:border-0">
-            <span className="text-xs text-[var(--text-muted)] flex-shrink-0">{label}</span>
-            <span className={`text-xs font-medium text-[var(--text-primary)] text-right ${mono ? 'font-mono' : ''}`}>
-                {value || '—'}
-            </span>
-        </div>
-    )
-}
+    const item = souscription.service_package || souscription.service || {}
+    const clientNom = souscription.client_nom || souscription.user?.name || 'Client'
+    const clientEmail = souscription.client_email || souscription.user?.email || '—'
+    const clientPhone = souscription.client_telephone || '—'
+    const clientWhatsApp = souscription.client_whatsapp || souscription.client_telephone
 
-// ── Upload livrable ───────────────────────────────────────────
-function UploadLivrable({ souscriptionId }) {
+    // ── Formulaire Statut Production ──
+    const statutForm = useForm({
+        statut_production: souscription.statut_production || 'non_demarre',
+        notes_admin: souscription.notes_admin || '',
+        date_livraison_estimee: souscription.date_livraison_estimee ? souscription.date_livraison_estimee.substring(0, 10) : '',
+    })
+
+    const handleStatutSubmit = (e) => {
+        e.preventDefault()
+        statutForm.patch(route('admin.souscriptions.statut', souscription.id))
+    }
+
+    // ── Formulaire Upload Livrable ──
     const fileRef = useRef()
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const [filePreview, setFilePreview] = useState(null)
+    const livrableForm = useForm({
         fichier: null,
         nom: '',
         message: '',
         type: 'livrable',
     })
 
-    const [preview, setPreview] = useState(null)
-
-    const handleFile = (e) => {
+    const handleFileChange = (e) => {
         const file = e.target.files[0]
         if (!file) return
-        setData('fichier', file)
-        if (!data.nom) setData('nom', file.name.replace(/\.[^.]+$/, ''))
-        setPreview(file.name)
+        livrableForm.setData('fichier', file)
+        if (!livrableForm.data.nom) {
+            livrableForm.setData('nom', file.name.replace(/\.[^.]+$/, ''))
+        }
+        setFilePreview(file.name)
     }
 
-    const submit = (e) => {
+    const handleLivrableSubmit = (e) => {
         e.preventDefault()
-        post(route('admin.souscriptions.livrable', souscriptionId), {
+        livrableForm.post(route('admin.souscriptions.livrable', souscription.id), {
             forceFormData: true,
-            onSuccess: () => { reset(); setPreview(null) }
+            onSuccess: () => {
+                livrableForm.reset()
+                setFilePreview(null)
+            }
         })
     }
 
     return (
-        <form onSubmit={submit} className="space-y-3">
-            {/* Zone drop fichier */}
-            <div
-                onClick={() => fileRef.current?.click()}
-                className={`
-                    border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all
-                    ${preview
-                        ? 'border-primary-500 bg-[var(--color-accent-subtle)]'
-                        : 'border-[var(--border-strong)] hover:border-primary-400 hover:bg-[var(--bg-muted)]'
-                    }
-                `}
-            >
-                <input ref={fileRef} type="file" className="hidden" onChange={handleFile} />
-                {preview ? (
-                    <div className="flex items-center justify-center gap-2">
-                        <Paperclip size={16} className="text-primary-500" />
-                        <span className="text-sm font-medium text-primary-500">{preview}</span>
-                        <button type="button" onClick={e => { e.stopPropagation(); setPreview(null); setData('fichier', null) }}>
-                            <X size={14} className="text-[var(--text-muted)] hover:text-red-500" />
-                        </button>
+        <AdminLayout title={`Commande ${souscription.reference}`}>
+            <div className="space-y-8">
+
+                {/* ── HEADER ── */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-800">
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href={route('admin.souscriptions.index')}
+                            className="p-2 border border-gray-800 hover:border-primary-500 text-gray-400 hover:text-white transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                        </Link>
+                        <div>
+                            <div className="flex items-center gap-2 font-mono text-[10px] text-primary-500 uppercase tracking-widest font-bold">
+                                <Terminal size={12} />
+                                <span>COMMANDE #{souscription.reference}</span>
+                            </div>
+                            <h1 className="text-2xl font-display font-bold uppercase text-white tracking-tight">
+                                {clientNom} // <span className="text-primary-500">{item.titre || item.nom || 'Prestation'}</span>
+                            </h1>
+                        </div>
                     </div>
-                ) : (
-                    <>
-                        <Upload size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
-                        <p className="text-sm text-[var(--text-muted)]">Cliquez pour choisir un fichier</p>
-                        <p className="text-xs text-[var(--text-subtle)] mt-0.5">PNG, PDF, ZIP, AI, PSD... max 50Mo</p>
-                    </>
-                )}
-            </div>
 
-            {/* Nom affiché */}
-            <input
-                value={data.nom}
-                onChange={e => setData('nom', e.target.value)}
-                placeholder="Nom du livrable (affiché au client)"
-                className="input text-sm"
-                required
-            />
-
-            {/* Type */}
-            <select
-                value={data.type}
-                onChange={e => setData('type', e.target.value)}
-                className="input text-sm"
-            >
-                <option value="livrable">📦 Livrable final</option>
-                <option value="apercu">👁️ Aperçu / preview</option>
-                <option value="revision">🔄 Fichier de révision</option>
-            </select>
-
-            {/* Message */}
-            <textarea
-                value={data.message}
-                onChange={e => setData('message', e.target.value)}
-                placeholder="Message accompagnant le livrable (optionnel)"
-                className="input text-sm resize-none"
-                rows={2}
-            />
-
-            <button
-                type="submit"
-                disabled={processing || !data.fichier || !data.nom}
-                className="btn btn-primary w-full gap-2"
-            >
-                {processing
-                    ? <><RefreshCw size={15} className="animate-spin" /> Envoi en cours...</>
-                    : <><Send size={15} /> Envoyer au client</>
-                }
-            </button>
-            {Object.keys(errors).length > 0 && (
-                <p className="text-red-500 text-xs">{Object.values(errors)[0]}</p>
-            )}
-        </form>
-    )
-}
-
-// ── Formulaire statut ─────────────────────────────────────────
-function StatutForm({ souscription }) {
-    const { data, setData, patch, processing } = useForm({
-        statut_production:      souscription.statut_production,
-        notes_admin:            souscription.notes_admin || '',
-        date_livraison_estimee: souscription.date_livraison_estimee?.slice(0, 10) || '',
-    })
-
-    const submit = (e) => {
-        e.preventDefault()
-        patch(route('admin.souscriptions.statut', souscription.id))
-    }
-
-    return (
-        <form onSubmit={submit} className="space-y-3">
-            <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5">Statut production</label>
-                <select
-                    value={data.statut_production}
-                    onChange={e => setData('statut_production', e.target.value)}
-                    className="input text-sm"
-                >
-                    {STATUTS_PROD.map(s => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                </select>
-            </div>
-            <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5">Livraison estimée</label>
-                <input
-                    type="date"
-                    value={data.date_livraison_estimee}
-                    onChange={e => setData('date_livraison_estimee', e.target.value)}
-                    className="input text-sm"
-                />
-            </div>
-            <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1.5">Notes internes</label>
-                <textarea
-                    value={data.notes_admin}
-                    onChange={e => setData('notes_admin', e.target.value)}
-                    className="input text-sm resize-none"
-                    rows={3}
-                    placeholder="Notes visibles uniquement par l'admin..."
-                />
-            </div>
-            <button type="submit" disabled={processing} className="btn btn-primary w-full gap-2">
-                {processing
-                    ? <><RefreshCw size={14} className="animate-spin" /> Mise à jour...</>
-                    : <><CheckCircle2 size={14} /> Enregistrer</>
-                }
-            </button>
-        </form>
-    )
-}
-
-// ══════════════════════════════════════════════════════════════
-// PAGE PRINCIPALE
-// ══════════════════════════════════════════════════════════════
-export default function SouscriptionDetail({ souscription }) {
-    const s = souscription
-    const pack = s.service_package
-
-    const statutProd = STATUTS_PROD.find(x => x.value === s.statut_production)
-
-    return (
-        <AdminLayout title={`Commande ${s.reference}`}>
-
-            {/* ── Header ─────────────────────────────────────── */}
-            <div className="flex items-center gap-3 mb-6">
-                <a
-                    href={route('admin.souscriptions.index')}
-                    className="w-8 h-8 rounded-xl border border-[var(--border-base)] flex items-center justify-center hover:border-primary-500 hover:text-primary-500 transition-colors"
-                >
-                    <ArrowLeft size={15} />
-                </a>
-                <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-extrabold text-[var(--text-primary)]">{s.reference}</h1>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            s.statut_paiement === 'paye'
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                        }`}>
-                            {s.statut_paiement === 'paye' ? '✓ Payé' : s.statut_paiement}
-                        </span>
-                    </div>
-                    <p className="text-xs text-[var(--text-muted)]">Souscrit le {formatDateTime(s.created_at)}</p>
-                </div>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-5">
-
-                {/* ── Colonne principale ──────────────────────── */}
-                <div className="lg:col-span-2 space-y-5">
-
-                    {/* Client */}
-                    <Section title="Informations client" icon={User}>
-                        <div className="grid sm:grid-cols-2 gap-x-6">
-                            <InfoRow label="Nom complet"  value={s.client_nom} />
-                            <InfoRow label="Email"        value={s.client_email} />
-                            <InfoRow label="Téléphone"    value={s.client_telephone} />
-                            <InfoRow label="WhatsApp"     value={s.client_whatsapp} />
-                            <InfoRow label="Entreprise"   value={s.client_entreprise} />
-                        </div>
-                        {s.besoins && (
-                            <div className="mt-3 p-3 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-base)]">
-                                <p className="text-xs text-[var(--text-muted)] mb-1 font-medium">Besoins exprimés</p>
-                                <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">{s.besoins}</p>
-                            </div>
-                        )}
-                    </Section>
-
-                    {/* Pack + paiement */}
-                    <Section title="Pack & paiement" icon={CreditCard}>
-                        <div className="grid sm:grid-cols-2 gap-x-6">
-                            <InfoRow label="Pack souscrit"  value={pack?.titre} />
-                            <InfoRow label="Montant payé"   value={formatPrix(s.montant)} />
-                            <InfoRow label="Statut"         value={s.statut_paiement_label} />
-                            <InfoRow label="Payé le"        value={formatDateTime(s.paye_le)} />
-                            <InfoRow label="Transaction ID" value={s.cinetpay_transaction_id} mono />
-                        </div>
-                    </Section>
-
-                    {/* Livrables */}
-                    <Section title={`Livrables envoyés (${s.livrables?.length || 0})`} icon={FileText}>
-                        {(!s.livrables || s.livrables.length === 0) ? (
-                            <div className="text-center py-6">
-                                <Upload size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
-                                <p className="text-sm text-[var(--text-muted)]">Aucun livrable envoyé</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                {s.livrables.map(l => (
-                                    <div key={l.id} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-base)]">
-                                        <div className="w-9 h-9 rounded-xl bg-primary-500/10 flex items-center justify-center flex-shrink-0">
-                                            <FileText size={15} className="text-primary-500" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">{l.nom}</p>
-                                            <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                                                <span>{l.taille_formate}</span>
-                                                <span>·</span>
-                                                <span>{l.type}</span>
-                                                <span>·</span>
-                                                <span>{formatDateTime(l.created_at)}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-1 flex-shrink-0">
-                                            {l.notifie_email    && <span title="Email envoyé"    className="text-xs text-green-500">✉</span>}
-                                            {l.notifie_whatsapp && <span title="WhatsApp envoyé" className="text-xs text-green-500">📱</span>}
-                                            <a
-                                                href={`/storage/${l.fichier_path}`}
-                                                target="_blank"
-                                                className="btn btn-ghost btn-sm p-1.5 rounded-lg"
-                                                title="Télécharger"
-                                            >
-                                                <Download size={13} />
-                                            </a>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </Section>
-                </div>
-
-                {/* ── Colonne latérale ────────────────────────── */}
-                <div className="space-y-5">
-
-                    {/* Statut production */}
-                    <Section title="Statut production" icon={Zap}>
-                        <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-[var(--bg-muted)]">
-                            <span className={`w-2.5 h-2.5 rounded-full ${
-                                s.statut_production === 'termine'    ? 'bg-green-500' :
-                                s.statut_production === 'en_cours'   ? 'bg-blue-500'  :
-                                s.statut_production === 'en_revision' ? 'bg-amber-500' :
-                                'bg-[var(--text-subtle)]'
-                            }`} />
-                            <span className="text-sm font-medium text-[var(--text-primary)]">
-                                {statutProd?.label || s.statut_production}
+                        {souscription.status === 'active' ? (
+                            <span className="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-mono font-bold uppercase tracking-widest">
+                                PAYÉ ✓ ({formatPrix(souscription.montant)})
                             </span>
-                        </div>
-                        <StatutForm souscription={s} />
-                    </Section>
+                        ) : (
+                            <span className="px-3 py-1 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 text-xs font-mono font-bold uppercase tracking-widest">
+                                {souscription.status} ({formatPrix(souscription.montant)})
+                            </span>
+                        )}
+                    </div>
+                </div>
 
-                    {/* Upload livrable */}
-                    <Section title="Envoyer un livrable" icon={Upload}>
-                        <UploadLivrable souscriptionId={s.id} />
-                    </Section>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                    {/* Timeline */}
-                    <Section title="Historique" icon={Clock}>
-                        <div className="space-y-3">
-                            {[
-                                { label: 'Souscription créée',  date: s.created_at,             show: true                 },
-                                { label: 'Paiement confirmé',   date: s.paye_le,                 show: !!s.paye_le          },
-                                { label: 'Production démarrée', date: s.date_debut_production,   show: !!s.date_debut_production },
-                                { label: 'Livraison estimée',   date: s.date_livraison_estimee,  show: !!s.date_livraison_estimee, estimate: true },
-                                { label: 'Livré le',            date: s.livre_le,                show: !!s.livre_le         },
-                            ].filter(e => e.show).map((e, i) => (
-                                <div key={i} className="flex gap-3 items-start text-xs">
-                                    <div className={`w-2 h-2 rounded-full mt-0.5 flex-shrink-0 ${
-                                        e.estimate ? 'border-2 border-primary-500' : 'bg-primary-500'
-                                    }`} />
+                    {/* ══════════════════════════════════════════════════
+                        COLONNE GAUCHE (INFOS & PRODUCTION) - 8 COLS
+                    ══════════════════════════════════════════════════ */}
+                    <div className="lg:col-span-8 space-y-6">
+
+                        {/* SECTION STATUT PRODUCTION & ÉCHÉANCES */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
+                            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
+                            
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-4 pb-2 border-b border-gray-800">
+                                <Clock size={14} />
+                                <span>PILOTAGE DE LA PRODUCTION</span>
+                            </div>
+
+                            <form onSubmit={handleStatutSubmit} className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <div className={`font-medium ${e.estimate ? 'text-[var(--text-muted)]' : 'text-[var(--text-secondary)]'}`}>
-                                            {e.label}
-                                        </div>
-                                        <div className="text-[var(--text-subtle)]">{formatDateTime(e.date)}</div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1.5">
+                                            Statut d'avancement
+                                        </label>
+                                        <select
+                                            value={statutForm.data.statut_production}
+                                            onChange={(e) => statutForm.setData('statut_production', e.target.value)}
+                                            className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                        >
+                                            {STATUTS_PROD.map((s) => (
+                                                <option key={s.value} value={s.value}>{s.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1.5">
+                                            Date de livraison estimée
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={statutForm.data.date_livraison_estimee}
+                                            onChange={(e) => statutForm.setData('date_livraison_estimee', e.target.value)}
+                                            className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                        />
                                     </div>
                                 </div>
-                            ))}
+
+                                <div>
+                                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1.5">
+                                        Notes internes & Instructions administratives
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={statutForm.data.notes_admin}
+                                        onChange={(e) => statutForm.setData('notes_admin', e.target.value)}
+                                        placeholder="Notes de production, remarques du designer, exigences particulières..."
+                                        className="w-full bg-[#141414] border border-gray-800 text-white p-3 text-xs font-mono focus:border-primary-500 focus:outline-none placeholder:text-gray-600"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={statutForm.processing}
+                                        className="px-5 py-2.5 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors disabled:opacity-50"
+                                    >
+                                        {statutForm.processing ? 'ENREGISTREMENT...' : 'METTRE À JOUR LE STATUT'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    </Section>
+
+                        {/* SECTION LIVRABLES & EXPÉDITION */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
+                            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
+
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-4 pb-2 border-b border-gray-800">
+                                <Upload size={14} />
+                                <span>EXPÉDIER UN LIVRABLE (MAX 50 MO)</span>
+                            </div>
+
+                            <form onSubmit={handleLivrableSubmit} className="space-y-4">
+                                <div
+                                    onClick={() => fileRef.current?.click()}
+                                    className={`border-2 border-dashed p-6 text-center cursor-pointer transition-all ${
+                                        filePreview 
+                                            ? 'border-primary-500 bg-primary-500/5' 
+                                            : 'border-gray-800 hover:border-gray-700 bg-[#121212]'
+                                    }`}
+                                >
+                                    <input
+                                        ref={fileRef}
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                    {filePreview ? (
+                                        <div className="flex items-center justify-center gap-2 font-mono text-xs text-primary-400">
+                                            <Paperclip size={16} />
+                                            <span className="font-bold">{filePreview}</span>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setFilePreview(null)
+                                                    livrableForm.setData('fichier', null)
+                                                }}
+                                                className="text-gray-500 hover:text-red-400 ml-2"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            <Upload size={24} className="mx-auto text-gray-500 mb-2" />
+                                            <p className="text-xs font-mono text-gray-300 uppercase tracking-wider font-bold">
+                                                CLIQUEZ OU GLISSEZ LE FICHIER LIVRABLE ICI
+                                            </p>
+                                            <p className="text-[10px] font-mono text-gray-500">
+                                                Formats acceptés : ZIP, PDF, PNG, JPG, AI, PSD, FIGMA (Jusqu'à 50 Mo)
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {livrableForm.errors.fichier && (
+                                    <p className="text-red-400 font-mono text-xs">{livrableForm.errors.fichier}</p>
+                                )}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                            Nom du livrable
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={livrableForm.data.nom}
+                                            onChange={(e) => livrableForm.setData('nom', e.target.value)}
+                                            placeholder="Ex: Identité Visuelle Finale v1.0"
+                                            className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                            Type de fichier
+                                        </label>
+                                        <select
+                                            value={livrableForm.data.type}
+                                            onChange={(e) => livrableForm.setData('type', e.target.value)}
+                                            className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                        >
+                                            <option value="livrable">Livrable Final (Marque la commande terminée)</option>
+                                            <option value="apercu">Aperçu / Prototype / Maquette</option>
+                                            <option value="revision">Révision intermédiaire</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                        Message au client (inclus dans l'Email & WhatsApp)
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={livrableForm.data.message}
+                                        onChange={(e) => livrableForm.setData('message', e.target.value)}
+                                        placeholder="Message accompagnant la livraison..."
+                                        className="w-full bg-[#141414] border border-gray-800 text-white p-3 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={livrableForm.processing || !livrableForm.data.fichier}
+                                        className="px-6 py-2.5 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        <Send size={14} />
+                                        {livrableForm.processing ? 'TÉLÉVERSEMENT...' : 'ENVOYER LE LIVRABLE'}
+                                    </button>
+                                </div>
+                            </form>
+
+                            {/* HISTORIQUE DES LIVRABLES */}
+                            <div className="mt-8 pt-6 border-t border-gray-800">
+                                <h3 className="font-mono text-xs uppercase tracking-widest text-gray-400 font-bold mb-4">
+                                    HISTORIQUE DES LIVRABLES TRANSMIS ({souscription.livrables?.length || 0})
+                                </h3>
+
+                                {souscription.livrables?.length === 0 ? (
+                                    <p className="text-gray-500 text-xs font-mono py-4 text-center">
+                                        Aucun livrable transmis pour cette commande.
+                                    </p>
+                                ) : (
+                                    <div className="divide-y divide-gray-800/60 border border-gray-800">
+                                        {souscription.livrables?.map((liv) => (
+                                            <div key={liv.id} className="p-3.5 flex items-center justify-between gap-4 hover:bg-[#141414] transition-colors">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-8 h-8 border border-gray-800 bg-[#161616] text-primary-500 flex items-center justify-center shrink-0">
+                                                        <FileText size={14} />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-bold text-white uppercase truncate">{liv.nom}</p>
+                                                        <p className="text-[10px] font-mono text-gray-500">
+                                                            {liv.fichier_nom_original} • {liv.taille_formattee} • {formatDate(liv.created_at)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-3">
+                                                    <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-mono">
+                                                        {liv.notifie_email && (
+                                                            <span className="px-1.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/30">MAIL ✓</span>
+                                                        )}
+                                                        {liv.notifie_whatsapp && (
+                                                            <span className="px-1.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/30">WHATSAPP ✓</span>
+                                                        )}
+                                                    </div>
+                                                    <a
+                                                        href={`/storage/${liv.fichier_path}`}
+                                                        target="_blank"
+                                                        download
+                                                        className="p-1.5 border border-gray-700 hover:border-primary-500 text-gray-300 hover:text-white transition-colors"
+                                                        title="Télécharger"
+                                                    >
+                                                        <Download size={14} />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* ══════════════════════════════════════════════════
+                        COLONNE DROITE (COORDONNÉES & DÉTAILS) - 4 COLS
+                    ══════════════════════════════════════════════════ */}
+                    <div className="lg:col-span-4 space-y-6">
+
+                        {/* COORDONNÉES CLIENT */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-5">
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-4 pb-2 border-b border-gray-800">
+                                <User size={14} />
+                                <span>COORDONNÉES CLIENT</span>
+                            </div>
+
+                            <div className="space-y-3 font-mono text-xs">
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block uppercase">Nom complet</span>
+                                    <span className="font-bold text-white">{clientNom}</span>
+                                </div>
+
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block uppercase">Adresse email</span>
+                                    <a href={`mailto:${clientEmail}`} className="text-gray-300 hover:text-primary-500 transition-colors">
+                                        {clientEmail}
+                                    </a>
+                                </div>
+
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block uppercase">Téléphone</span>
+                                    <a href={`tel:${clientPhone}`} className="text-gray-300 hover:text-primary-500 transition-colors">
+                                        {clientPhone}
+                                    </a>
+                                </div>
+
+                                {clientWhatsApp && (
+                                    <div>
+                                        <span className="text-[10px] text-gray-500 block uppercase">Ligne WhatsApp</span>
+                                        <a
+                                            href={`https://wa.me/${clientWhatsApp.replace(/\D/g, '')}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 text-green-400 hover:underline"
+                                        >
+                                            <MessageCircle size={12} /> {clientWhatsApp}
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* DÉTAILS PRESTATION */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-5">
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-4 pb-2 border-b border-gray-800">
+                                <Package size={14} />
+                                <span>PRESTATION SOUSCRITE</span>
+                            </div>
+
+                            <div className="space-y-3 font-mono text-xs">
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block uppercase">Désignation</span>
+                                    <span className="font-bold text-white text-sm">{item.titre || item.nom || 'Sur-mesure'}</span>
+                                </div>
+
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block uppercase">Montant total</span>
+                                    <span className="font-bold text-primary-500 text-lg">{formatPrix(souscription.montant)}</span>
+                                </div>
+
+                                {souscription.duration_months && (
+                                    <div>
+                                        <span className="text-[10px] text-gray-500 block uppercase">Durée d'engagement</span>
+                                        <span className="text-gray-300">{souscription.duration_months} mois</span>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <span className="text-[10px] text-gray-500 block uppercase">Date de création</span>
+                                    <span className="text-gray-400">{formatDateTime(souscription.created_at)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* BRIEF / BESOINS EXPRIMÉS */}
+                        {souscription.besoins && (
+                            <div className="border border-gray-800 bg-[#0E0E0E] p-5">
+                                <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-3 pb-2 border-b border-gray-800">
+                                    <MessageSquare size={14} />
+                                    <span>BRIEF DU CLIENT</span>
+                                </div>
+                                <p className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
+                                    {souscription.besoins}
+                                </p>
+                            </div>
+                        )}
+
+                    </div>
+
                 </div>
+
             </div>
         </AdminLayout>
     )
