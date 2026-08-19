@@ -6,7 +6,8 @@ import {
     ArrowLeft, User, Mail, Phone, MessageCircle, Building2,
     Package, CreditCard, Clock, CheckCircle2, Upload, FileText,
     Download, Send, AlertCircle, Calendar, RefreshCw, X,
-    Paperclip, MessageSquare, Star, Zap, Terminal, Focus, ChevronRight, Shield
+    Paperclip, MessageSquare, Star, Zap, Terminal, Focus, ChevronRight, Shield,
+    Printer, History, AlertTriangle, Check
 } from 'lucide-react'
 
 const formatPrix = (v) => new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'
@@ -75,6 +76,41 @@ export default function SouscriptionDetail({ souscription }) {
         })
     }
 
+    // ── Formulaire Fil de Discussion ──
+    const msgAttachRef = useRef()
+    const [msgFilePreview, setMsgFilePreview] = useState(null)
+    const messageForm = useForm({
+        message: '',
+        attachment: null,
+    })
+
+    const handleMsgSubmit = (e) => {
+        e.preventDefault()
+        messageForm.post(route('admin.souscriptions.message', souscription.id), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                messageForm.reset()
+                setMsgFilePreview(null)
+            }
+        })
+    }
+
+    // ── Relances WhatsApp pré-remplies ──
+    const getWhatsAppUrl = (type) => {
+        if (!clientWhatsApp) return '#'
+        const cleanPhone = clientWhatsApp.replace(/\D/g, '')
+        let text = ''
+        if (type === 'brief') {
+            text = `Bonjour ${clientNom}, ici l'équipe Dims Creative Academy au sujet de votre commande #${souscription.reference}. Pourriez-vous nous transmettre vos consignes et éléments graphiques afin que nous puissions démarrer la production ?`
+        } else if (type === 'validation') {
+            text = `Bonjour ${clientNom}, une nouvelle proposition a été déposée pour votre commande #${souscription.reference}. Merci de la consulter sur votre espace et de nous faire part de vos retours.`
+        } else if (type === 'retard') {
+            text = `Bonjour ${clientNom}, nous apportons des finitions supplémentaires sur votre commande #${souscription.reference}. Votre livraison sera effectuée très prochainement.`
+        }
+        return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
+    }
+
     return (
         <AdminLayout title={`Commande ${souscription.reference}`}>
             <div className="space-y-8">
@@ -99,13 +135,21 @@ export default function SouscriptionDetail({ souscription }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <a
+                            href={route('invoices.show', souscription.id)}
+                            target="_blank"
+                            className="inline-flex items-center gap-2 border border-gray-700 hover:border-primary-500 text-gray-300 hover:text-white px-4 py-2 font-mono text-xs uppercase tracking-widest bg-[#141414] transition-colors"
+                        >
+                            <Printer size={14} /> FACTURE / REÇU PDF
+                        </a>
+
                         {souscription.status === 'active' ? (
-                            <span className="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-mono font-bold uppercase tracking-widest">
+                            <span className="px-3 py-1.5 bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-mono font-bold uppercase tracking-widest">
                                 PAYÉ ✓ ({formatPrix(souscription.montant)})
                             </span>
                         ) : (
-                            <span className="px-3 py-1 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 text-xs font-mono font-bold uppercase tracking-widest">
+                            <span className="px-3 py-1.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 text-xs font-mono font-bold uppercase tracking-widest">
                                 {souscription.status} ({formatPrix(souscription.montant)})
                             </span>
                         )}
@@ -115,7 +159,7 @@ export default function SouscriptionDetail({ souscription }) {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                     {/* ══════════════════════════════════════════════════
-                        COLONNE GAUCHE (INFOS & PRODUCTION) - 8 COLS
+                        COLONNE GAUCHE (INFOS & PRODUCTION & MESSAGES) - 8 COLS
                     ══════════════════════════════════════════════════ */}
                     <div className="lg:col-span-8 space-y-6">
 
@@ -163,7 +207,7 @@ export default function SouscriptionDetail({ souscription }) {
                                         Notes internes & Instructions administratives
                                     </label>
                                     <textarea
-                                        rows={3}
+                                        rows={2}
                                         value={statutForm.data.notes_admin}
                                         onChange={(e) => statutForm.setData('notes_admin', e.target.value)}
                                         placeholder="Notes de production, remarques du designer, exigences particulières..."
@@ -183,7 +227,7 @@ export default function SouscriptionDetail({ souscription }) {
                             </form>
                         </div>
 
-                        {/* SECTION LIVRABLES & EXPÉDITION */}
+                        {/* SECTION EXPÉDITION DE LIVRABLES */}
                         <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
                             <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
 
@@ -346,10 +390,121 @@ export default function SouscriptionDetail({ souscription }) {
                             </div>
                         </div>
 
+                        {/* SECTION MESSAGERIE & RETOUCHES DIRECTES */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
+                            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
+
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-4 pb-2 border-b border-gray-800">
+                                <MessageSquare size={14} />
+                                <span>FIL DE DISCUSSION & RETOUCHES ({souscription.messages?.length || 0})</span>
+                            </div>
+
+                            {/* Liste des messages */}
+                            <div className="space-y-4 max-h-96 overflow-y-auto pr-2 mb-6 divide-y divide-gray-800/40">
+                                {souscription.messages?.length === 0 ? (
+                                    <p className="text-gray-500 text-xs font-mono py-6 text-center">
+                                        Aucun échange sur cette commande pour le moment.
+                                    </p>
+                                ) : (
+                                    souscription.messages?.map((msg) => {
+                                        const isAdmin = msg.sender_type === 'admin'
+                                        return (
+                                            <div key={msg.id} className={`pt-4 flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}>
+                                                <div className="flex items-center gap-2 mb-1 font-mono text-[10px] text-gray-500">
+                                                    <span className={`font-bold ${isAdmin ? 'text-primary-500' : 'text-blue-400'}`}>
+                                                        {isAdmin ? 'ADMINISTRATION (VOUS)' : (msg.user?.name || clientNom)}
+                                                    </span>
+                                                    <span>• {formatDateTime(msg.created_at)}</span>
+                                                </div>
+                                                <div className={`p-4 border max-w-xl text-xs font-mono leading-relaxed ${
+                                                    isAdmin 
+                                                        ? 'bg-[#161616] border-primary-500/40 text-white' 
+                                                        : 'bg-[#121212] border-gray-800 text-gray-200'
+                                                }`}>
+                                                    <p className="whitespace-pre-wrap">{msg.message}</p>
+                                                    {msg.attachment_path && (
+                                                        <div className="mt-3 pt-2 border-t border-gray-800 flex items-center justify-between gap-2 text-[10px] text-primary-400">
+                                                            <span className="flex items-center gap-1 truncate">
+                                                                <Paperclip size={12} /> {msg.attachment_name || 'Pièce jointe'}
+                                                            </span>
+                                                            <a
+                                                                href={`/storage/${msg.attachment_path}`}
+                                                                target="_blank"
+                                                                download
+                                                                className="underline hover:text-white"
+                                                            >
+                                                                Télécharger
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                )}
+                            </div>
+
+                            {/* Formulaire de réponse Admin */}
+                            <form onSubmit={handleMsgSubmit} className="space-y-3 pt-4 border-t border-gray-800">
+                                <textarea
+                                    required
+                                    rows={3}
+                                    value={messageForm.data.message}
+                                    onChange={(e) => messageForm.setData('message', e.target.value)}
+                                    placeholder="Écrire un message ou une consigne au client..."
+                                    className="w-full bg-[#141414] border border-gray-800 text-white p-3 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                />
+
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            ref={msgAttachRef}
+                                            type="file"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0]
+                                                if (file) {
+                                                    messageForm.setData('attachment', file)
+                                                    setMsgFilePreview(file.name)
+                                                }
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => msgAttachRef.current?.click()}
+                                            className="px-3 py-1.5 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white font-mono text-[10px] uppercase flex items-center gap-1"
+                                        >
+                                            <Paperclip size={12} /> {msgFilePreview ? msgFilePreview : 'JOINDRE UN FICHIER'}
+                                        </button>
+                                        {msgFilePreview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setMsgFilePreview(null)
+                                                    messageForm.setData('attachment', null)
+                                                }}
+                                                className="text-gray-500 hover:text-red-400"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={messageForm.processing || !messageForm.data.message}
+                                        className="px-5 py-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors disabled:opacity-50 flex items-center gap-2 self-end"
+                                    >
+                                        <Send size={12} /> ENVOYER
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
 
                     {/* ══════════════════════════════════════════════════
-                        COLONNE DROITE (COORDONNÉES & DÉTAILS) - 4 COLS
+                        COLONNE DROITE (COORDONNÉES & RELANCES & TIMELINE) - 4 COLS
                     ══════════════════════════════════════════════════ */}
                     <div className="lg:col-span-4 space-y-6">
 
@@ -393,6 +548,46 @@ export default function SouscriptionDetail({ souscription }) {
                                         </a>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* RELANCES WHATSAPP EN 1-CLIC */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-5">
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-green-500 font-bold mb-3 pb-2 border-b border-gray-800">
+                                <Zap size={14} />
+                                <span>RELANCES WHATSAPP EN 1-CLIC</span>
+                            </div>
+
+                            <div className="space-y-2 font-mono text-xs">
+                                <a
+                                    href={getWhatsAppUrl('brief')}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block p-2.5 border border-gray-800 hover:border-green-500/60 bg-[#141414] text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <span className="text-green-400 font-bold block text-[11px]">💬 Demander le Brief</span>
+                                    <span className="text-[10px] text-gray-500">Relancer pour les instructions créatives</span>
+                                </a>
+
+                                <a
+                                    href={getWhatsAppUrl('validation')}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block p-2.5 border border-gray-800 hover:border-green-500/60 bg-[#141414] text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <span className="text-green-400 font-bold block text-[11px]">✅ Demander la Validation</span>
+                                    <span className="text-[10px] text-gray-500">Notifier qu'une version est prête</span>
+                                </a>
+
+                                <a
+                                    href={getWhatsAppUrl('retard')}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block p-2.5 border border-gray-800 hover:border-green-500/60 bg-[#141414] text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <span className="text-green-400 font-bold block text-[11px]">⏳ Notifier Finitions en cours</span>
+                                    <span className="text-[10px] text-gray-500">Avertir d'un ajustement de délai</span>
+                                </a>
                             </div>
                         </div>
 
@@ -440,6 +635,27 @@ export default function SouscriptionDetail({ souscription }) {
                                 </p>
                             </div>
                         )}
+
+                        {/* JOURNAL D'ACTIVITÉ & AUDIT TIMELINE */}
+                        <div className="border border-gray-800 bg-[#0E0E0E] p-5">
+                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-3 pb-2 border-b border-gray-800">
+                                <History size={14} />
+                                <span>JOURNAL D'ÉVÉNEMENTS</span>
+                            </div>
+
+                            <div className="space-y-3 font-mono text-[11px] max-h-64 overflow-y-auto pr-1">
+                                {souscription.activities?.length === 0 ? (
+                                    <p className="text-gray-500 text-[10px]">Aucun log enregistré.</p>
+                                ) : (
+                                    souscription.activities?.map((act) => (
+                                        <div key={act.id} className="border-l border-primary-500 pl-3 py-0.5">
+                                            <p className="text-gray-300 leading-tight">{act.description}</p>
+                                            <span className="text-[9px] text-gray-500">{formatDateTime(act.created_at)}</span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
 
                     </div>
 

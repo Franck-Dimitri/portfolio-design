@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
+use App\Models\Payment;
 use App\Models\Livrable;
+use App\Models\SubscriptionMessage;
 use App\Services\WhatsAppService;
 use App\Notifications\LivrableDisponible;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
 
 class SouscriptionController extends Controller
@@ -68,117 +72,219 @@ class SouscriptionController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Subscription $souscription)
     {
-        $souscription = Subscription::with(['user', 'servicePackage', 'service', 'livrables', 'payment', 'payments'])
-            ->findOrFail($id);
+        $souscription->load([
+            'user',
+            'servicePackage',
+            'service',
+            'livrables',
+            'payment',
+            'messages.user',
+            'activities'
+        ]);
 
         return Inertia::render('Admin/pages/Packages/SouscriptionDetail', [
             'souscription' => $souscription,
         ]);
     }
 
-    public function updateStatut(Request $request, $id)
+    public function updateStatut(Request $request, Subscription $souscription)
     {
-        $souscription = Subscription::findOrFail($id);
-
         $request->validate([
-            'statut_production'       => 'required|in:non_demarre,en_cours,en_revision,termine,archive',
-            'notes_admin'             => 'nullable|string',
-            'date_livraison_estimee'  => 'nullable|date',
+            'statut_production'     => 'required|in:non_demarre,en_cours,en_revision,termine,archive',
+            'notes_admin'           => 'nullable|string|max:2000',
+            'date_livraison_estimee'=> 'nullable|date',
         ]);
 
-        $data = $request->only(['statut_production', 'notes_admin', 'date_livraison_estimee']);
+        $ancienStatut = $souscription->statut_production;
 
-        if ($request->statut_production === 'en_cours' && !$souscription->date_debut_production) {
-            $data['date_debut_production'] = now();
+        $souscription->update([
+            'statut_production'     => $request->statut_production,
+            'notes_admin'           => $request->notes_admin,
+            'date_livraison_estimee'=> $request->date_livraison_estimee,
+            'livre_le'              => $request->statut_production === 'termine' ? now() : $souscription->livre_le,
+        ]);
+
+        $souscription->logActivity('status_updated', "Statut de production changé : {$ancienStatut} → {$request->statut_production}");
+
+        // Notification WhatsApp si statut change et client a un numéro WhatsApp
+        if ($ancienStatut !== $request->statut_production) {
+            $phone = $souscription->client_whatsapp ?: $souscription->client_telephone;
+            if ($phone) {
+                $statutsLabels = [
+                    'non_demarre' => 'Non démarré',
+                    'en_cours'    => 'En cours de création',
+                    'en_revision' => 'En cours de révision',
+                    'termine'     => 'Terminé',
+                    'archive'     => 'Archivé',
+                ];
+                $label = $statutsLabels[$request->statut_production] ?? $request->statut_production;
+                $msg = "Bonjour {$souscription->client_nom}, le statut de votre commande #{$souscription->reference} chez DCA a été mis à jour : *{$label}*.";
+                
+                try {
+                    WhatsAppService::send($phone, $msg);
+                } catch (\Exception $e) {
+                    \Log::warning("Échec notification WhatsApp: " . $e->getMessage());
+                }
+            }
         }
-        if ($request->statut_production === 'termine' && !$souscription->livre_le) {
-            $data['livre_le'] = now();
-        }
 
-        $souscription->update($data);
-
-        return back()->with('success', 'Statut de production mis à jour avec succès.');
+        return back()->with('success', 'Statut de production mis à jour.');
     }
 
-    /**
-     * Upload + envoi d'un livrable
-     */
-    public function uploadLivrable(Request $request, $id)
+    public function uploadLivrable(Request $request, Subscription $souscription)
     {
-        $souscription = Subscription::with(['user', 'servicePackage', 'service'])->findOrFail($id);
-
         $request->validate([
-            'fichier'  => 'required|file|max:51200',  // 50 Mo max
-            'nom'      => 'required|string|max:100',
-            'message'  => 'nullable|string',
-            'type'     => 'in:livrable,apercu,revision',
+            'fichier' => 'required|file|max:51200', // Max 50 Mo
+            'nom'     => 'required|string|max:255',
+            'message' => 'nullable|string|max:1000',
+            'type'    => 'required|in:livrable,apercu,revision',
         ]);
 
         $file = $request->file('fichier');
-        $path = $file->store("livrables/{$souscription->reference}", 'public');
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $mime = $file->getMimeType();
+        $size = $file->getSize();
+
+        $path = $file->store("livrables/{$souscription->id}", 'public');
 
         $livrable = Livrable::create([
-            'souscription_id'      => $souscription->id,
-            'nom'                  => $request->nom,
-            'fichier_path'         => $path,
-            'fichier_nom_original' => $file->getClientOriginalName(),
-            'mime_type'            => $file->getMimeType(),
-            'taille'               => $file->getSize(),
-            'type'                 => $request->type ?? 'livrable',
-            'message'              => $request->message,
+            'souscription_id'     => $souscription->id,
+            'nom'                 => $request->nom,
+            'fichier_path'        => $path,
+            'fichier_nom_original'=> $originalName,
+            'type'                => $request->type,
+            'extension'           => $extension,
+            'mime_type'           => $mime,
+            'taille_octets'       => $size,
+            'message'             => $request->message,
+            'notifie_email'       => false,
+            'notifie_whatsapp'    => false,
         ]);
 
-        // ── Notifier par email ────────────────────────────────
-        try {
-            if ($souscription->user) {
-                $souscription->user->notify(new LivrableDisponible($souscription, $livrable));
-                $livrable->update(['notifie_email' => true]);
-            }
-        } catch (\Exception $e) {
-            \Log::warning("Notification email livrable échouée: " . $e->getMessage());
-        }
+        $souscription->logActivity('deliverable_added', "Nouveau livrable déposé : {$livrable->nom} ({$livrable->taille_formattee})");
 
-        // ── Notifier par WhatsApp ─────────────────────────────
-        $clientPhone = $souscription->client_whatsapp ?: $souscription->client_telephone;
-        if ($clientPhone) {
-            try {
-                $whatsapp = app(WhatsAppService::class);
-                $fileUrl  = Storage::disk('public')->url($path);
-
-                // Message texte
-                $whatsapp->envoyer(
-                    $clientPhone,
-                    $whatsapp->messageLivraisonClient($souscription, $livrable->nom)
-                );
-
-                // Fichier joint (si image ou PDF < 10Mo)
-                if ($livrable->taille < 10 * 1024 * 1024) {
-                    $whatsapp->envoyerFichier(
-                        $clientPhone,
-                        url($fileUrl),
-                        "📎 {$livrable->nom}"
-                    );
-                }
-
-                $livrable->update([
-                    'notifie_whatsapp' => true,
-                    'envoye_le'        => now(),
-                ]);
-            } catch (\Exception $e) {
-                \Log::warning("Notification WhatsApp livrable échouée: " . $e->getMessage());
-            }
-        }
-
-        // Marquer comme terminé si type = livrable
+        // Si livrable final, passer la commande en "terminé"
         if ($request->type === 'livrable') {
             $souscription->update([
                 'statut_production' => 'termine',
-                'livre_le' => now()
+                'livre_le'          => now(),
             ]);
         }
 
-        return back()->with('success', 'Livrable téléversé et notification envoyée avec succès.');
+        // Notification Email
+        $clientUser = $souscription->user;
+        $clientEmail = $souscription->client_email ?: $clientUser?->email;
+        if ($clientEmail) {
+            try {
+                if ($clientUser) {
+                    $clientUser->notify(new LivrableDisponible($souscription, $livrable));
+                } else {
+                    \Illuminate\Support\Facades\Notification::route('mail', $clientEmail)
+                        ->notify(new LivrableDisponible($souscription, $livrable));
+                }
+                $livrable->update(['notifie_email' => true]);
+            } catch (\Exception $e) {
+                \Log::warning("Échec notification email livrable: " . $e->getMessage());
+            }
+        }
+
+        // Notification WhatsApp
+        $phone = $souscription->client_whatsapp ?: $souscription->client_telephone;
+        if ($phone) {
+            $msg = "Bonjour {$souscription->client_nom}, un nouveau fichier \"{$livrable->nom}\" est disponible pour votre commande #{$souscription->reference} chez DCA. Rendez-vous sur votre espace pour le télécharger.";
+            try {
+                $sent = WhatsAppService::send($phone, $msg);
+                if ($sent) {
+                    $livrable->update(['notifie_whatsapp' => true]);
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Échec notification WhatsApp livrable: " . $e->getMessage());
+            }
+        }
+
+        return back()->with('success', 'Livrable téléversé et notifications envoyées au client.');
+    }
+
+    public function sendMessage(Request $request, Subscription $souscription)
+    {
+        $request->validate([
+            'message' => 'required|string|max:2000',
+            'attachment' => 'nullable|file|max:20480',
+        ]);
+
+        $path = null;
+        $name = null;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $name = $file->getClientOriginalName();
+            $path = $file->store("messages/{$souscription->id}", 'public');
+        }
+
+        SubscriptionMessage::create([
+            'subscription_id' => $souscription->id,
+            'user_id' => Auth::id(),
+            'sender_type' => 'admin',
+            'message' => $request->message,
+            'attachment_path' => $path,
+            'attachment_name' => $name,
+            'is_read' => false,
+        ]);
+
+        $souscription->logActivity('message_sent', 'Message envoyé par l\'administration DCA');
+
+        return back()->with('success', 'Message envoyé au client.');
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        $fileName = 'dca_souscriptions_' . date('Y-m-d_His') . '.csv';
+        $subscriptions = Subscription::with(['servicePackage', 'service', 'payment', 'user'])->get();
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        return response()->stream(function () use ($subscriptions) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8
+
+            // En-têtes
+            fputcsv($handle, [
+                'Référence',
+                'Client',
+                'Email',
+                'Téléphone',
+                'Prestation',
+                'Montant (FCFA)',
+                'Statut Paiement',
+                'Statut Production',
+                'Date Commande',
+                'Date Livraison Estimée'
+            ], ';');
+
+            foreach ($subscriptions as $sub) {
+                fputcsv($handle, [
+                    $sub->reference,
+                    $sub->client_nom ?: $sub->user?->name,
+                    $sub->client_email ?: $sub->user?->email,
+                    $sub->client_telephone ?: '—',
+                    $sub->servicePackage?->titre ?: $sub->service?->titre ?: 'Sur-mesure',
+                    $sub->montant,
+                    $sub->statut_paiement,
+                    $sub->statut_production,
+                    $sub->created_at->format('d/m/Y H:i'),
+                    $sub->date_livraison_estimee ? $sub->date_livraison_estimee->format('d/m/Y') : '—',
+                ], ';');
+            }
+
+            fclose($handle);
+        }, 200, $headers);
     }
 }

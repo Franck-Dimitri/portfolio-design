@@ -1,602 +1,656 @@
-// resources/js/Pages/Admin/Packages/Index.jsx
+// resources/js/Pages/Admin/pages/Packages/Index.jsx
 import { useState } from 'react'
-import { useForm } from '@inertiajs/react'
+import { useForm, router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import {
-    Plus, Pencil, Trash2, Star, ToggleLeft, ToggleRight,
-    Package, CheckCircle2, X, GripVertical, Layers,
-    Clock, RefreshCw, ChevronDown, ChevronUp, Eye, EyeOff,
-    Zap, Crown, Sparkles
+    Plus, Pencil, Trash2, Star,
+    Package, CheckCircle2, X,
+    Clock, RefreshCw, Zap, Crown, Sparkles, Terminal, Crosshair, DollarSign,
+    Check, MinusCircle, Layers, ExternalLink
 } from 'lucide-react'
 
-// ── Helpers ───────────────────────────────────────────────────
 const formatPrix = (prix) =>
-    new Intl.NumberFormat('fr-FR').format(prix) + ' FCFA'
+    new Intl.NumberFormat('fr-FR').format(prix || 0) + ' FCFA'
 
-const ICONES_DISPONIBLES = [
-    { label: 'Éclair', value: 'Zap' },
-    { label: 'Couronne', value: 'Crown' },
-    { label: 'Étoile', value: 'Star' },
-    { label: 'Fusée', value: 'Rocket' },
-    { label: 'Diamant', value: 'Diamond' },
-    { label: 'Magie', value: 'Sparkles' },
-]
-
-// ── PackageCard ───────────────────────────────────────────────
-function PackageCard({ pkg, onEdit, onDelete, onToggle }) {
-    return (
-        <div className={`
-            card relative overflow-hidden transition-all duration-300
-            ${!pkg.is_active ? 'opacity-60' : ''}
-            hover:shadow-orange-sm hover:-translate-y-0.5
-        `}>
-            {/* Badge populaire */}
-            {pkg.is_populaire && (
-                <div className="absolute top-3 right-3 badge badge-primary gap-1">
-                    <Star size={10} fill="currentColor" /> Populaire
-                </div>
-            )}
-
-            {/* Bande couleur en haut */}
-            <div
-                className="h-1.5 w-full rounded-t-2xl"
-                style={{ background: pkg.couleur_badge || '#f97316' }}
-            />
-
-            <div className="p-5">
-                {/* Header */}
-                <div className="flex items-start gap-3 mb-4">
-                    <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: (pkg.couleur_badge || '#f97316') + '20' }}
-                    >
-                        <Layers size={18} style={{ color: pkg.couleur_badge || '#f97316' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-[var(--text-primary)] text-base leading-tight">{pkg.titre}</h3>
-                        {pkg.description_courte && (
-                            <p className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2">{pkg.description_courte}</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Prix */}
-                <div className="mb-4">
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-extrabold text-[var(--text-primary)]">
-                            {formatPrix(pkg.prix)}
-                        </span>
-                        <span className="text-xs text-[var(--text-muted)]">/mois</span>
-                    </div>
-                    {pkg.prix_barre && (
-                        <span className="text-xs text-[var(--text-muted)] line-through">
-                            {formatPrix(pkg.prix_barre)}
-                        </span>
-                    )}
-                </div>
-
-                {/* Stats grid */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                    {[
-                        { label: 'Designs', value: pkg.nombre_design ?? '∞' },
-                        { label: 'Jours', value: pkg.delai_livraison ?? '—' },
-                        { label: 'Révisions', value: pkg.nombre_revision ?? 0 },
-                    ].map(({ label, value }) => (
-                        <div key={label} className="text-center p-2 rounded-xl bg-[var(--bg-muted)]">
-                            <div className="text-lg font-bold text-[var(--text-primary)]">{value}</div>
-                            <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">{label}</div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Features preview */}
-                {pkg.features?.length > 0 && (
-                    <div className="space-y-1 mb-4">
-                        {pkg.features.slice(0, 3).map((f, i) => (
-                            <div key={i} className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
-                                <CheckCircle2 size={11} className="text-primary-500 flex-shrink-0" />
-                                {f}
-                            </div>
-                        ))}
-                        {pkg.features.length > 3 && (
-                            <p className="text-xs text-[var(--text-muted)] pl-4">+{pkg.features.length - 3} autres</p>
-                        )}
-                    </div>
-                )}
-
-                {/* Statut */}
-                <div className="flex items-center gap-2 mb-4">
-                    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                        pkg.is_active
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-[var(--bg-muted)] text-[var(--text-muted)]'
-                    }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${pkg.is_active ? 'bg-green-500' : 'bg-[var(--text-subtle)]'}`} />
-                        {pkg.is_active ? 'Visible' : 'Masqué'}
-                    </span>
-                    <span className="text-xs text-[var(--text-muted)]">Ordre #{pkg.ordre}</span>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-[var(--border-base)]">
-                    <button
-                        onClick={() => onToggle(pkg)}
-                        className="btn btn-ghost btn-sm flex-1 gap-1 text-xs"
-                        title={pkg.is_active ? 'Masquer' : 'Afficher'}
-                    >
-                        {pkg.is_active
-                            ? <><EyeOff size={13} /> Masquer</>
-                            : <><Eye size={13} /> Afficher</>
-                        }
-                    </button>
-                    <button
-                        onClick={() => onEdit(pkg)}
-                        className="btn btn-secondary btn-sm flex-1 gap-1 text-xs"
-                    >
-                        <Pencil size={13} /> Modifier
-                    </button>
-                    <button
-                        onClick={() => onDelete(pkg)}
-                        className="btn btn-sm gap-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-[var(--border-base)] rounded-xl px-3 py-1.5"
-                    >
-                        <Trash2 size={13} />
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
+const ICONES_MAP = {
+    Zap: Zap,
+    Crown: Crown,
+    Star: Star,
+    Sparkles: Sparkles,
+    Package: Package,
 }
 
-// ── TagInput – input pour les listes JSON ─────────────────────
-function TagInput({ label, value = [], onChange, placeholder }) {
-    const [input, setInput] = useState('')
+export default function Index({ packages = [] }) {
+    const [modalOpen, setModalOpen] = useState(false)
+    const [editingPkg, setEditingPkg] = useState(null)
 
-    const add = () => {
-        const v = input.trim()
-        if (v && !value.includes(v)) {
-            onChange([...value, v])
-        }
-        setInput('')
-    }
-
-    const remove = (i) => onChange(value.filter((_, idx) => idx !== i))
-
-    return (
-        <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">{label}</label>
-            <div className="flex gap-2 mb-2">
-                <input
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
-                    placeholder={placeholder}
-                    className="input text-sm py-2 flex-1"
-                />
-                <button type="button" onClick={add} className="btn btn-primary btn-sm px-3">
-                    <Plus size={14} />
-                </button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-                {value.map((item, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[var(--color-accent-light)] text-primary-700 dark:text-primary-300">
-                        {item}
-                        <button type="button" onClick={() => remove(i)} className="hover:text-red-500">
-                            <X size={10} />
-                        </button>
-                    </span>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-// ── Modal Formulaire Pack ─────────────────────────────────────
-function PackageModal({ isOpen, onClose, editPackage }) {
-    const isEdit = !!editPackage
-
-    const { data, setData, post, put, processing, errors, reset } = useForm({
-        titre:              editPackage?.titre ?? '',
-        description:        editPackage?.description ?? '',
-        description_courte: editPackage?.description_courte ?? '',
-        prix:               editPackage?.prix ?? '',
-        prix_barre:         editPackage?.prix_barre ?? '',
-        nombre_design:      editPackage?.nombre_design ?? '',
-        delai_livraison:    editPackage?.delai_livraison ?? '',
-        nombre_revision:    editPackage?.nombre_revision ?? 2,
-        features:           editPackage?.features ?? [],
-        livrables:          editPackage?.livrables ?? [],
-        services:           editPackage?.services ?? [],
-        non_inclus:         editPackage?.non_inclus ?? [],
-        couleur_badge:      editPackage?.couleur_badge ?? '#f97316',
-        icone:              editPackage?.icone ?? 'Zap',
-        is_populaire:       editPackage?.is_populaire ?? false,
-        is_active:          editPackage?.is_active ?? true,
-        ordre:              editPackage?.ordre ?? 0,
+    const form = useForm({
+        titre: '',
+        description: '',
+        description_courte: '',
+        prix: '',
+        prix_barre: '',
+        nombre_design: 1,
+        delai_livraison: 3,
+        nombre_revision: 2,
+        services: ['Logo vectoriel HD', 'Charte graphique essentielle', 'Export PNG, PDF, SVG'],
+        non_inclus: ['Animation 3D complexe'],
+        couleur_badge: '#F97316',
+        icone: 'Zap',
+        is_populaire: false,
+        is_active: true,
+        ordre: 1,
     })
 
-    const submit = (e) => {
+    const openCreate = () => {
+        setEditingPkg(null)
+        form.reset()
+        form.setData({
+            titre: '',
+            description: '',
+            description_courte: '',
+            prix: '',
+            prix_barre: '',
+            nombre_design: 1,
+            delai_livraison: 3,
+            nombre_revision: 2,
+            services: ['Logo vectoriel HD', 'Charte graphique essentielle', 'Export PNG, PDF, SVG'],
+            non_inclus: ['Animation 3D complexe'],
+            couleur_badge: '#F97316',
+            icone: 'Zap',
+            is_populaire: false,
+            is_active: true,
+            ordre: packages.length + 1,
+        })
+        setModalOpen(true)
+    }
+
+    const openEdit = (pkg) => {
+        setEditingPkg(pkg)
+        form.setData({
+            titre: pkg.titre || '',
+            description: pkg.description || '',
+            description_courte: pkg.description_courte || '',
+            prix: pkg.prix || '',
+            prix_barre: pkg.prix_barre || '',
+            nombre_design: pkg.nombre_design || 1,
+            delai_livraison: pkg.delai_livraison || 3,
+            nombre_revision: pkg.nombre_revision ?? 2,
+            services: Array.isArray(pkg.services) && pkg.services.length > 0 ? pkg.services : ['Design inclus'],
+            non_inclus: Array.isArray(pkg.non_inclus) ? pkg.non_inclus : [],
+            couleur_badge: pkg.couleur_badge || '#F97316',
+            icone: pkg.icone || 'Zap',
+            is_populaire: !!pkg.is_populaire,
+            is_active: !!pkg.is_active,
+            ordre: pkg.ordre || 1,
+        })
+        setModalOpen(true)
+    }
+
+    const closeModal = () => {
+        setModalOpen(false)
+        setEditingPkg(null)
+        form.reset()
+        form.clearErrors()
+    }
+
+    const handleSubmit = (e) => {
         e.preventDefault()
-        if (isEdit) {
-            put(route('admin.packages.update', editPackage.id), {
-                onSuccess: () => { reset(); onClose() }
+        const payload = {
+            ...form.data,
+            services: form.data.services.filter(s => s && s.trim() !== ''),
+            non_inclus: form.data.non_inclus.filter(s => s && s.trim() !== ''),
+        }
+
+        if (editingPkg) {
+            form.put(route('admin.packages.update', editingPkg.id), {
+                data: payload,
+                onSuccess: () => closeModal(),
             })
         } else {
-            post(route('admin.packages.store'), {
-                onSuccess: () => { reset(); onClose() }
+            form.post(route('admin.packages.store'), {
+                data: payload,
+                onSuccess: () => closeModal(),
             })
         }
     }
 
-    if (!isOpen) return null
+    const handleDelete = (id) => {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce pack ?')) {
+            router.delete(route('admin.packages.destroy', id), {
+                preserveScroll: true,
+            })
+        }
+    }
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-
-            {/* Modal */}
-            <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto card rounded-2xl animate-scale-in-bounce">
-
-                {/* Header modal */}
-                <div className="sticky top-0 z-10 glass px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
-                    <div>
-                        <h2 className="font-bold text-lg text-[var(--text-primary)]">
-                            {isEdit ? 'Modifier le pack' : 'Nouveau pack'}
-                        </h2>
-                        <p className="text-xs text-[var(--text-muted)]">
-                            {isEdit ? `Édition de "${editPackage.titre}"` : 'Créer un nouveau pack de design'}
-                        </p>
-                    </div>
-                    <button onClick={onClose} className="btn btn-ghost btn-sm w-8 h-8 p-0 rounded-xl">
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <form onSubmit={submit} className="p-6 space-y-5">
-
-                    {/* Titre + Couleur */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="col-span-2">
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-                                Nom du pack <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                value={data.titre}
-                                onChange={e => setData('titre', e.target.value)}
-                                className="input"
-                                placeholder="Ex : Pack Starter, Pack Pro..."
-                            />
-                            {errors.titre && <p className="text-red-500 text-xs mt-1">{errors.titre}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Couleur accent</label>
-                            <input
-                                type="color"
-                                value={data.couleur_badge}
-                                onChange={e => setData('couleur_badge', e.target.value)}
-                                className="w-full h-[42px] rounded-xl border border-[var(--border-base)] cursor-pointer bg-[var(--bg-muted)] p-1"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Description courte */}
-                    <div>
-                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Description courte</label>
-                        <input
-                            value={data.description_courte}
-                            onChange={e => setData('description_courte', e.target.value)}
-                            className="input"
-                            placeholder="Résumé affiché sur la carte (max 200 car.)"
-                            maxLength={200}
-                        />
-                    </div>
-
-                    {/* Description longue */}
-                    <div>
-                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Description complète</label>
-                        <textarea
-                            value={data.description}
-                            onChange={e => setData('description', e.target.value)}
-                            className="input resize-none"
-                            rows={3}
-                            placeholder="Description détaillée du pack..."
-                        />
-                    </div>
-
-                    {/* Prix */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-                                Prix mensuel (FCFA) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={data.prix}
-                                onChange={e => setData('prix', e.target.value)}
-                                className="input"
-                                placeholder="Ex: 50000"
-                                min={0}
-                            />
-                            {errors.prix && <p className="text-red-500 text-xs mt-1">{errors.prix}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Prix barré (optionnel)</label>
-                            <input
-                                type="number"
-                                value={data.prix_barre}
-                                onChange={e => setData('prix_barre', e.target.value)}
-                                className="input"
-                                placeholder="Ancien prix"
-                                min={0}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Caractéristiques */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Nbre designs/mois</label>
-                            <input
-                                type="number"
-                                value={data.nombre_design}
-                                onChange={e => setData('nombre_design', e.target.value)}
-                                className="input"
-                                placeholder="Vide = illimité"
-                                min={1}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Délai (jours)</label>
-                            <input
-                                type="number"
-                                value={data.delai_livraison}
-                                onChange={e => setData('delai_livraison', e.target.value)}
-                                className="input"
-                                placeholder="Ex: 5"
-                                min={1}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Révisions</label>
-                            <input
-                                type="number"
-                                value={data.nombre_revision}
-                                onChange={e => setData('nombre_revision', e.target.value)}
-                                className="input"
-                                placeholder="Ex: 2"
-                                min={0}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Tags */}
-                    <TagInput
-                        label="Features incluses"
-                        value={data.features}
-                        onChange={v => setData('features', v)}
-                        placeholder="Ex: Logo HD, Fichiers source... (Entrée)"
-                    />
-                    <TagInput
-                        label="Types de design inclus"
-                        value={data.services}
-                        onChange={v => setData('services', v)}
-                        placeholder="Ex: Logo, Flyer, Bannière... (Entrée)"
-                    />
-                    <TagInput
-                        label="Livrables fournis"
-                        value={data.livrables}
-                        onChange={v => setData('livrables', v)}
-                        placeholder="Ex: PNG HD, PDF, Fichiers AI... (Entrée)"
-                    />
-                    <TagInput
-                        label="Non inclus (optionnel)"
-                        value={data.non_inclus}
-                        onChange={v => setData('non_inclus', v)}
-                        placeholder="Ex: Impression, Hébergement... (Entrée)"
-                    />
-
-                    {/* Options */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">Ordre d'affichage</label>
-                            <input
-                                type="number"
-                                value={data.ordre}
-                                onChange={e => setData('ordre', e.target.value)}
-                                className="input"
-                                min={0}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-2 justify-end pb-1">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={data.is_populaire}
-                                    onChange={e => setData('is_populaire', e.target.checked)}
-                                    className="w-4 h-4 accent-primary-500"
-                                />
-                                <span className="text-sm text-[var(--text-secondary)]">Marquer comme "Populaire"</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={data.is_active}
-                                    onChange={e => setData('is_active', e.target.checked)}
-                                    className="w-4 h-4 accent-primary-500"
-                                />
-                                <span className="text-sm text-[var(--text-secondary)]">Visible sur le site</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex gap-3 pt-2 border-t border-[var(--border-base)]">
-                        <button type="button" onClick={onClose} className="btn btn-secondary flex-1">
-                            Annuler
-                        </button>
-                        <button type="submit" disabled={processing} className="btn btn-primary flex-1 gap-2">
-                            {processing
-                                ? <><RefreshCw size={15} className="animate-spin" /> Enregistrement...</>
-                                : <><CheckCircle2 size={15} /> {isEdit ? 'Mettre à jour' : 'Créer le pack'}</>
-                            }
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )
-}
-
-// ── Modal Confirmation suppression ────────────────────────────
-function DeleteModal({ pkg, onClose, onConfirm }) {
-    const { delete: destroy, processing } = useForm()
-
-    const handleDelete = () => {
-        destroy(route('admin.packages.destroy', pkg.id), {
-            onSuccess: onClose
+    const handleToggle = (id) => {
+        router.patch(route('admin.packages.toggle', id), {}, {
+            preserveScroll: true,
         })
     }
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative card p-6 max-w-sm w-full animate-scale-in">
-                <div className="text-center mb-5">
-                    <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-3">
-                        <Trash2 size={20} className="text-red-500" />
-                    </div>
-                    <h3 className="font-bold text-lg text-[var(--text-primary)]">Supprimer ce pack ?</h3>
-                    <p className="text-sm text-[var(--text-muted)] mt-1">
-                        Le pack <strong>"{pkg?.titre}"</strong> sera définitivement supprimé.
-                    </p>
-                </div>
-                <div className="flex gap-3">
-                    <button onClick={onClose} className="btn btn-secondary flex-1">Annuler</button>
-                    <button
-                        onClick={handleDelete}
-                        disabled={processing}
-                        className="btn flex-1 bg-red-500 hover:bg-red-600 text-white gap-2"
-                    >
-                        {processing ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                        Supprimer
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-// ══════════════════════════════════════════════════════════════
-// PAGE PRINCIPALE
-// ══════════════════════════════════════════════════════════════
-export default function PackagesIndex({ packages }) {
-    const [showModal, setShowModal]       = useState(false)
-    const [editPackage, setEditPackage]   = useState(null)
-    const [deleteTarget, setDeleteTarget] = useState(null)
-    const { patch } = useForm()
-
-    const handleEdit = (pkg) => { setEditPackage(pkg); setShowModal(true) }
-    const handleNew  = ()    => { setEditPackage(null); setShowModal(true) }
-    const handleToggle = (pkg) => {
-        patch(route('admin.packages.toggle', pkg.id))
+    // Handlers inclusions / exclusions
+    const handleArrayChange = (field, index, value) => {
+        const updated = [...form.data[field]]
+        updated[index] = value
+        form.setData(field, updated)
     }
 
-    const actifs   = packages.filter(p => p.is_active)
-    const inactifs = packages.filter(p => !p.is_active)
+    const addArrayItem = (field) => {
+        form.setData(field, [...form.data[field], ''])
+    }
+
+    const removeArrayItem = (field, index) => {
+        const updated = form.data[field].filter((_, i) => i !== index)
+        form.setData(field, updated)
+    }
+
+    const totalPacks = packages.length
+    const activePacks = packages.filter(p => p.is_active).length
+    const popularPacks = packages.filter(p => p.is_populaire).length
 
     return (
-        <AdminLayout title="Packs de design">
+        <AdminLayout title="Gestion des Packs & Tarifs">
+            <div className="space-y-8">
 
-            {/* ── Header ─────────────────────────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-xl bg-primary-500/10 flex items-center justify-center">
-                            <Package size={16} className="text-primary-500" />
-                        </div>
-                        <h1 className="text-2xl font-extrabold text-[var(--text-primary)]">Packs de design</h1>
-                    </div>
-                    <p className="text-sm text-[var(--text-muted)]">
-                        {packages.length} pack{packages.length > 1 ? 's' : ''} ·{' '}
-                        <span className="text-green-500">{actifs.length} actif{actifs.length > 1 ? 's' : ''}</span>
-                    </p>
-                </div>
-                <button onClick={handleNew} className="btn btn-primary gap-2 self-start">
-                    <Plus size={16} />
-                    Nouveau pack
-                </button>
-            </div>
+                {/* ── HEADER ── */}
+                <div className="relative border border-gray-800 bg-[#0E0E0E] p-6 overflow-hidden">
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary-500"></div>
+                    <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary-500"></div>
+                    <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary-500"></div>
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-primary-500"></div>
 
-            {/* ── Stats rapides ───────────────────────────────── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                {[
-                    { label: 'Total packs', value: packages.length, icon: Package, color: 'primary' },
-                    { label: 'Actifs', value: actifs.length, icon: Eye, color: 'green' },
-                    { label: 'Masqués', value: inactifs.length, icon: EyeOff, color: 'neutral' },
-                    { label: 'Populaires', value: packages.filter(p=>p.is_populaire).length, icon: Star, color: 'amber' },
-                ].map(({ label, value, icon: Icon, color }) => (
-                    <div key={label} className="card p-4 flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            color === 'primary' ? 'bg-primary-500/10' :
-                            color === 'green'   ? 'bg-green-500/10'   :
-                            color === 'amber'   ? 'bg-amber-500/10'   :
-                            'bg-[var(--bg-muted)]'
-                        }`}>
-                            <Icon size={15} className={
-                                color === 'primary' ? 'text-primary-500' :
-                                color === 'green'   ? 'text-green-500'   :
-                                color === 'amber'   ? 'text-amber-500'   :
-                                'text-[var(--text-muted)]'
-                            } />
-                        </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <div className="text-xl font-extrabold text-[var(--text-primary)]">{value}</div>
-                            <div className="text-[11px] text-[var(--text-muted)]">{label}</div>
+                            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-primary-500 font-bold mb-1">
+                                <Terminal size={12} />
+                                <span>MODULE : GRILLES TARIFAIRES & OFFRES PACKAGÉES</span>
+                            </div>
+                            <h1 className="text-2xl md:text-3xl font-display font-bold uppercase tracking-tight text-white">
+                                PACKS & <span className="text-primary-500">OFFRES DE DESIGN</span>
+                            </h1>
+                            <p className="text-xs font-mono text-gray-400 mt-1">
+                                Configurez les formules complètes, abonnements, quotas de visuels et conditions de livraison.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={openCreate}
+                            className="inline-flex items-center gap-2 bg-primary-500 text-black px-5 py-2.5 font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors shrink-0"
+                        >
+                            <Plus size={14} /> NOUVEAU PACK
+                        </button>
+                    </div>
+                </div>
+
+                {/* ── STATS BAR ── */}
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="border border-gray-800 bg-[#0E0E0E] p-4">
+                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">TOTAL PACKS</span>
+                        <div className="text-2xl font-bold font-display text-white">{totalPacks}</div>
+                    </div>
+                    <div className="border border-gray-800 bg-[#0E0E0E] p-4">
+                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">PACKS ACTIFS</span>
+                        <div className="text-2xl font-bold font-display text-green-400">{activePacks}</div>
+                    </div>
+                    <div className="border border-gray-800 bg-[#0E0E0E] p-4">
+                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">FORMULES POPULAIRES</span>
+                        <div className="text-2xl font-bold font-display text-primary-500">{popularPacks}</div>
+                    </div>
+                </div>
+
+                {/* ── GRILLE DES PACKS ── */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {packages.length === 0 ? (
+                        <div className="col-span-full border border-dashed border-gray-800 p-12 text-center bg-[#0E0E0E]">
+                            <Package size={32} className="mx-auto text-gray-600 mb-3" />
+                            <p className="text-xs font-mono text-gray-400 uppercase tracking-wider mb-4">
+                                AUCUN PACK CRÉÉ POUR LE MOMENT
+                            </p>
+                            <button
+                                onClick={openCreate}
+                                className="px-4 py-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400"
+                            >
+                                CRÉER LE PREMIER PACK
+                            </button>
+                        </div>
+                    ) : (
+                        packages.map((pkg) => {
+                            const IconComponent = ICONES_MAP[pkg.icone] || Package
+
+                            return (
+                                <article
+                                    key={pkg.id}
+                                    className={`border bg-[#0E0E0E] flex flex-col justify-between relative group hover:border-primary-500 transition-colors ${
+                                        pkg.is_active ? 'border-gray-800' : 'border-gray-800/40 opacity-60'
+                                    }`}
+                                >
+                                    {/* Accent Top Bar */}
+                                    <div
+                                        className="h-1 w-full"
+                                        style={{ backgroundColor: pkg.couleur_badge || '#F97316' }}
+                                    />
+
+                                    <div className="p-6 space-y-5">
+                                        {/* Header Card */}
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className="w-10 h-10 border border-gray-800 flex items-center justify-center shrink-0"
+                                                    style={{ color: pkg.couleur_badge || '#F97316', backgroundColor: `${pkg.couleur_badge || '#F97316'}10` }}
+                                                >
+                                                    <IconComponent size={18} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-white uppercase text-base tracking-wider">
+                                                        {pkg.titre}
+                                                    </h3>
+                                                    <span className="text-[10px] font-mono text-gray-500">
+                                                        ORDRE D'AFFICHAGE #{pkg.ordre || 1}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col items-end gap-1">
+                                                {pkg.is_populaire && (
+                                                    <span className="px-2 py-0.5 bg-primary-500 text-black font-mono font-bold text-[9px] uppercase tracking-wider flex items-center gap-1">
+                                                        <Star size={9} fill="currentColor" /> POPULAIRE
+                                                    </span>
+                                                )}
+                                                <button
+                                                    onClick={() => handleToggle(pkg.id)}
+                                                    className={`px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider transition-colors ${
+                                                        pkg.is_active
+                                                            ? 'bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20'
+                                                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                    }`}
+                                                >
+                                                    {pkg.is_active ? 'ACTIF ✓' : 'INACTIF'}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Prix */}
+                                        <div className="p-4 bg-[#141414] border border-gray-800 space-y-1">
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-2xl font-display font-bold text-white">
+                                                    {formatPrix(pkg.prix)}
+                                                </span>
+                                                {pkg.prix_barre && (
+                                                    <span className="text-xs font-mono text-gray-500 line-through">
+                                                        {formatPrix(pkg.prix_barre)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[11px] font-mono text-gray-400">
+                                                {pkg.description_courte || pkg.description || 'Formule complète'}
+                                            </p>
+                                        </div>
+
+                                        {/* Specs techniques */}
+                                        <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
+                                            <div className="p-2 border border-gray-800 bg-[#121212]">
+                                                <span className="text-[9px] text-gray-500 block uppercase">DESIGNS</span>
+                                                <span className="font-bold text-white">{pkg.nombre_design || 1}</span>
+                                            </div>
+                                            <div className="p-2 border border-gray-800 bg-[#121212]">
+                                                <span className="text-[9px] text-gray-500 block uppercase">DÉLAI</span>
+                                                <span className="font-bold text-white">{pkg.delai_livraison || 3} j</span>
+                                            </div>
+                                            <div className="p-2 border border-gray-800 bg-[#121212]">
+                                                <span className="text-[9px] text-gray-500 block uppercase">RÉVISIONS</span>
+                                                <span className="font-bold text-white">
+                                                    {pkg.nombre_revision === 0 ? 'Illimitées' : `${pkg.nombre_revision}`}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Inclusions */}
+                                        {Array.isArray(pkg.services) && pkg.services.length > 0 && (
+                                            <div className="space-y-1.5 pt-1 font-mono text-xs">
+                                                <span className="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">
+                                                    PRESTATIONS INCLUSES
+                                                </span>
+                                                {pkg.services.map((srv, idx) => (
+                                                    <div key={idx} className="flex items-center gap-2 text-gray-300 text-[11px]">
+                                                        <Check size={12} className="text-primary-500 shrink-0" />
+                                                        <span className="truncate">{srv}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Non inclus */}
+                                        {Array.isArray(pkg.non_inclus) && pkg.non_inclus.length > 0 && (
+                                            <div className="space-y-1 pt-1 font-mono text-xs opacity-75">
+                                                {pkg.non_inclus.map((item, idx) => (
+                                                    <div key={idx} className="flex items-center gap-2 text-gray-500 text-[11px] line-through">
+                                                        <MinusCircle size={12} className="shrink-0" />
+                                                        <span className="truncate">{item}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Footer actions */}
+                                    <div className="p-4 border-t border-gray-800 flex items-center justify-between font-mono text-xs bg-[#0c0c0c]">
+                                        {pkg.slug ? (
+                                            <a
+                                                href={`/packages/${pkg.slug}`}
+                                                target="_blank"
+                                                className="text-[10px] text-gray-400 hover:text-primary-500 flex items-center gap-1 uppercase tracking-wider"
+                                            >
+                                                <ExternalLink size={12} /> VOIR EN LIGNE
+                                            </a>
+                                        ) : <div />}
+
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => openEdit(pkg)}
+                                                className="p-1.5 border border-gray-800 hover:border-blue-500 text-gray-400 hover:text-blue-400 transition-colors"
+                                                title="Modifier"
+                                            >
+                                                <Pencil size={12} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(pkg.id)}
+                                                className="p-1.5 border border-gray-800 hover:border-red-500 text-gray-400 hover:text-red-400 transition-colors"
+                                                title="Supprimer"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            )
+                        })
+                    )}
+                </div>
+
+                {/* ══════════════════════════════════════════════════
+                    MODAL : CRÉATION / ÉDITION DE PACK
+                ══════════════════════════════════════════════════ */}
+                {modalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                        <div className="bg-[#0E0E0E] border border-gray-800 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+                            
+                            {/* Header modal */}
+                            <div className="p-5 border-b border-gray-800 flex items-center justify-between sticky top-0 bg-[#0E0E0E] z-10">
+                                <div>
+                                    <div className="flex items-center gap-2 font-mono text-[10px] text-primary-500 uppercase tracking-widest font-bold">
+                                        <Crosshair size={12} />
+                                        <span>{editingPkg ? 'MODIFICATION DU PACK' : 'NOUVELLE FORMULE TARIFAIRE'}</span>
+                                    </div>
+                                    <h2 className="text-lg font-display font-bold uppercase text-white">
+                                        {editingPkg ? form.data.titre : 'Configurer un Pack'}
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={closeModal}
+                                    className="p-2 border border-gray-800 hover:border-red-500 text-gray-400 hover:text-red-400 transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            {/* Formulaire */}
+                            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                                
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Titre du Pack *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={form.data.titre}
+                                                onChange={(e) => form.setData('titre', e.target.value)}
+                                                placeholder="Ex: Pack Starter"
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Accroche / Description courte
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={form.data.description_courte}
+                                                onChange={(e) => form.setData('description_courte', e.target.value)}
+                                                placeholder="Ex: Idéal pour lancer votre marque avec impact"
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Prix (FCFA) *
+                                            </label>
+                                            <input
+                                                type="number"
+                                                required
+                                                value={form.data.prix}
+                                                onChange={(e) => form.setData('prix', e.target.value)}
+                                                placeholder="150000"
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Prix barré (FCFA)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={form.data.prix_barre}
+                                                onChange={(e) => form.setData('prix_barre', e.target.value)}
+                                                placeholder="200000"
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Nb Designs
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={form.data.nombre_design}
+                                                onChange={(e) => form.setData('nombre_design', e.target.value)}
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Délai (jours)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={form.data.delai_livraison}
+                                                onChange={(e) => form.setData('delai_livraison', e.target.value)}
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Révisions (0 = illimitées)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={form.data.nombre_revision}
+                                                onChange={(e) => form.setData('nombre_revision', e.target.value)}
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Icône
+                                            </label>
+                                            <select
+                                                value={form.data.icone}
+                                                onChange={(e) => form.setData('icone', e.target.value)}
+                                                className="w-full bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                            >
+                                                <option value="Zap">Zap (Éclair)</option>
+                                                <option value="Crown">Crown (Couronne)</option>
+                                                <option value="Star">Star (Étoile)</option>
+                                                <option value="Sparkles">Sparkles (Brillant)</option>
+                                                <option value="Package">Package (Colis)</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">
+                                                Couleur Accent Badge
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="color"
+                                                    value={form.data.couleur_badge}
+                                                    onChange={(e) => form.setData('couleur_badge', e.target.value)}
+                                                    className="w-10 h-8 border border-gray-800 bg-transparent cursor-pointer p-0"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={form.data.couleur_badge}
+                                                    onChange={(e) => form.setData('couleur_badge', e.target.value)}
+                                                    className="flex-1 bg-[#141414] border border-gray-800 text-white px-3 py-2 text-xs font-mono"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Services inclus */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                                                Prestations incluses dans le Pack
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => addArrayItem('services')}
+                                                className="text-[10px] font-mono uppercase tracking-widest text-primary-500 hover:underline flex items-center gap-1"
+                                            >
+                                                <Plus size={12} /> AJOUTER
+                                            </button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {form.data.services.map((srv, idx) => (
+                                                <div key={idx} className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={srv}
+                                                        onChange={(e) => handleArrayChange('services', idx, e.target.value)}
+                                                        placeholder="Ex: 3 Propositions créatives"
+                                                        className="flex-1 bg-[#141414] border border-gray-800 text-white px-3 py-1.5 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeArrayItem('services', idx)}
+                                                        className="p-1 text-gray-500 hover:text-red-400"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Non inclus */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                                                Prestations non incluses (exclusions claires)
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => addArrayItem('non_inclus')}
+                                                className="text-[10px] font-mono uppercase tracking-widest text-gray-400 hover:text-white flex items-center gap-1"
+                                            >
+                                                <Plus size={12} /> AJOUTER
+                                            </button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {form.data.non_inclus.map((item, idx) => (
+                                                <div key={idx} className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={item}
+                                                        onChange={(e) => handleArrayChange('non_inclus', idx, e.target.value)}
+                                                        placeholder="Ex: Modélisation 3D"
+                                                        className="flex-1 bg-[#141414] border border-gray-800 text-white px-3 py-1.5 text-xs font-mono focus:border-primary-500 focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeArrayItem('non_inclus', idx)}
+                                                        className="p-1 text-gray-500 hover:text-red-400"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Switches */}
+                                    <div className="flex flex-wrap items-center gap-6 pt-2 font-mono text-xs border-t border-gray-800">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.data.is_populaire}
+                                                onChange={(e) => form.setData('is_populaire', e.target.checked)}
+                                                className="accent-primary-500"
+                                            />
+                                            <span className="text-gray-300">Marquer comme Pack Populaire / Recommandé</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.data.is_active}
+                                                onChange={(e) => form.setData('is_active', e.target.checked)}
+                                                className="accent-primary-500"
+                                            />
+                                            <span className="text-gray-300">Pack actif & visible aux clients</span>
+                                        </label>
+                                    </div>
+
+                                </div>
+
+                                {/* Footer actions */}
+                                <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        className="px-4 py-2 border border-gray-700 text-gray-300 font-mono text-xs uppercase tracking-widest hover:border-gray-600"
+                                    >
+                                        ANNULER
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={form.processing}
+                                        className="px-6 py-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 disabled:opacity-50"
+                                    >
+                                        {form.processing ? 'ENREGISTREMENT...' : (editingPkg ? 'METTRE À JOUR LE PACK' : 'CRÉER LE PACK')}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                ))}
+                )}
+
             </div>
-
-            {/* ── Grille des packs ───────────────────────────── */}
-            {packages.length === 0 ? (
-                <div className="card p-16 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-primary-500/10 flex items-center justify-center mx-auto mb-4">
-                        <Package size={28} className="text-primary-500" />
-                    </div>
-                    <h3 className="font-bold text-lg text-[var(--text-primary)] mb-1">Aucun pack créé</h3>
-                    <p className="text-sm text-[var(--text-muted)] mb-5">Créez votre premier pack de design graphique.</p>
-                    <button onClick={handleNew} className="btn btn-primary mx-auto gap-2">
-                        <Plus size={16} /> Créer un pack
-                    </button>
-                </div>
-            ) : (
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {packages.map(pkg => (
-                        <PackageCard
-                            key={pkg.id}
-                            pkg={pkg}
-                            onEdit={handleEdit}
-                            onDelete={setDeleteTarget}
-                            onToggle={handleToggle}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {/* ── Modals ─────────────────────────────────────── */}
-            <PackageModal
-                key={showModal ? (editPackage ? `edit-${editPackage.id}` : 'create') : 'hidden'}
-                isOpen={showModal}
-                onClose={() => { setShowModal(false); setEditPackage(null) }}
-                editPackage={editPackage}
-            />
-            {deleteTarget && (
-                <DeleteModal
-                    pkg={deleteTarget}
-                    onClose={() => setDeleteTarget(null)}
-                    onConfirm={() => setDeleteTarget(null)}
-                />
-            )}
         </AdminLayout>
     )
 }

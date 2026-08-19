@@ -2,14 +2,21 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\SouscriptionController;
+use App\Http\Controllers\Admin\CommandeAdminController;
+use App\Http\Controllers\Admin\ClientAdminController;
+use App\Http\Controllers\Admin\LogAdminController;
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\ContactAdminController;
+
+use App\Http\Controllers\Client\ClientDashboardController;
+use App\Http\Controllers\InvoiceController;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ContactController;
@@ -22,6 +29,17 @@ use App\Http\Controllers\PaymentController;
 
 // ── Pages publiques ───────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Redirection intelligente dashboard selon le rôle (Admin ou Client)
+Route::middleware(['auth'])->get('/dashboard', function () {
+    if (Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('client.dashboard');
+})->name('dashboard');
+
+// Factures & Reçus officiels (Admin & Propriétaire client)
+Route::middleware(['auth'])->get('/invoices/{subscription}', [InvoiceController::class, 'show'])->name('invoices.show');
 
 // Alias pour compatibilité /projets et /projects
 Route::get('/projects', [PublicProjectController::class, 'index'])->name('projects.index');
@@ -87,9 +105,34 @@ Route::middleware(['auth'])->group(function () {
 // Webhook de Paiement (ouvert)
 Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
 
+// ── Espace Client (Auth requis) ───────────────────────────────
+Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/dashboard', [ClientDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/souscriptions', [ClientDashboardController::class, 'souscriptions'])->name('souscriptions.index');
+    Route::get('/souscriptions/{subscription}', [ClientDashboardController::class, 'show'])->name('souscriptions.show');
+    Route::post('/souscriptions/{subscription}/message', [ClientDashboardController::class, 'sendMessage'])->name('souscriptions.message');
+});
+
 // ── Espace Administration (Auth + Verified requis) ────────────
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Commandes & Kanban de Production
+    Route::get('commandes', [CommandeAdminController::class, 'index'])->name('commandes.index');
+    Route::patch('commandes/{commande}/quick-status', [CommandeAdminController::class, 'quickStatus'])->name('commandes.quick-status');
+
+    // CRM & Clients
+    Route::get('clients', [ClientAdminController::class, 'index'])->name('clients.index');
+    Route::get('clients/{client}', [ClientAdminController::class, 'show'])->name('clients.show');
+    Route::patch('clients/{client}/role', [ClientAdminController::class, 'updateRole'])->name('clients.role');
+
+    // Souscriptions & Ventes
+    Route::get('souscriptions/export/csv', [SouscriptionController::class, 'exportCsv'])->name('souscriptions.export');
+    Route::get('souscriptions', [SouscriptionController::class, 'index'])->name('souscriptions.index');
+    Route::get('souscriptions/{souscription}', [SouscriptionController::class, 'show'])->name('souscriptions.show');
+    Route::patch('souscriptions/{souscription}/statut', [SouscriptionController::class, 'updateStatut'])->name('souscriptions.statut');
+    Route::post('souscriptions/{souscription}/livrable', [SouscriptionController::class, 'uploadLivrable'])->name('souscriptions.livrable');
+    Route::post('souscriptions/{souscription}/message', [SouscriptionController::class, 'sendMessage'])->name('souscriptions.message');
 
     // Projets & Portfolio
     Route::resource('projects', ProjectController::class);
@@ -101,12 +144,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('packages', PackageController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('packages/{package}/toggle', [PackageController::class, 'toggleActif'])->name('packages.toggle');
 
-    // Souscriptions & Livrables
-    Route::get('souscriptions', [SouscriptionController::class, 'index'])->name('souscriptions.index');
-    Route::get('souscriptions/{souscription}', [SouscriptionController::class, 'show'])->name('souscriptions.show');
-    Route::patch('souscriptions/{souscription}/statut', [SouscriptionController::class, 'updateStatut'])->name('souscriptions.statut');
-    Route::post('souscriptions/{souscription}/livrable', [SouscriptionController::class, 'uploadLivrable'])->name('souscriptions.livrable');
-
     // Blog
     Route::resource('blogs', BlogController::class);
 
@@ -114,6 +151,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('contacts', [ContactAdminController::class, 'index'])->name('contacts.index');
     Route::patch('contacts/{id}/toggle-read', [ContactAdminController::class, 'toggleRead'])->name('contacts.toggle-read');
     Route::delete('contacts/{id}', [ContactAdminController::class, 'destroy'])->name('contacts.destroy');
+
+    // Logs Système & Audit Trail
+    Route::get('logs', [LogAdminController::class, 'index'])->name('logs.index');
+    Route::get('logs/export/csv', [LogAdminController::class, 'exportCsv'])->name('logs.export');
+    Route::post('logs/clear-old', [LogAdminController::class, 'clearOld'])->name('logs.clear');
 });
 
 require __DIR__.'/auth.php';

@@ -10,11 +10,11 @@ export default function AdminLayout({ children, title = 'Administration' }) {
             {/* SIDEBAR */}
             <Sidebar />
 
-            {/* MAIN CONTENT AREA */}
+            {/* MAIN CONTENT AREA (FULL WIDTH) */}
             <div className="flex-1 flex flex-col min-w-0">
                 <Topbar />
 
-                <main className="p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto animate-fade-in-up">
+                <main className="p-6 md:p-8 flex-1 w-full animate-fade-in-up">
                     {children}
                 </main>
             </div>

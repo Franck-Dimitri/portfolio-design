@@ -48,13 +48,16 @@ class Subscription extends Model
             if (empty($sub->statut_production)) {
                 $sub->statut_production = 'non_demarre';
             }
-            // Auto fill client infos from user if not provided
             if (empty($sub->client_nom) && $sub->user) {
                 $sub->client_nom = $sub->user->name;
             }
             if (empty($sub->client_email) && $sub->user) {
                 $sub->client_email = $sub->user->email;
             }
+        });
+
+        static::created(function ($sub) {
+            $sub->logActivity('order_created', 'Commande initiée sur la plateforme');
         });
     }
 
@@ -86,8 +89,27 @@ class Subscription extends Model
 
     public function livrables()
     {
-        // Supporter à la fois souscription_id et subscription_id
         return $this->hasMany(Livrable::class, 'souscription_id');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(SubscriptionMessage::class)->with('user')->oldest();
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(SubscriptionActivity::class)->latest();
+    }
+
+    public function logActivity(string $type, string $description, ?array $meta = null): SubscriptionActivity
+    {
+        return $this->activities()->create([
+            'type' => $type,
+            'description' => $description,
+            'meta' => $meta,
+            'created_at' => now(),
+        ]);
     }
 
     // ── Scopes ────────────────────────────────────────────────

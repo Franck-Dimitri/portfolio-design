@@ -12,21 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // 1. Gestion des rôles et statuts
-            $table->enum('role', ['admin', 'designer', 'client'])->default('client')->after('password');
-            $table->string('status')->default('active')->after('role'); // active, suspended
-            
-            // 2. Informations de contact et localisation
-            $table->string('phone')->nullable()->after('email');
-            $table->string('city')->nullable()->after('phone');
-            $table->string('country')->default('Cameroon')->after('city');
-            
-            // 3. Informations professionnelles (Optionnel pour les particuliers)
-            $table->string('company_name')->nullable()->after('name');
-            
-            // 4. Interface et traçabilité
-            $table->string('avatar')->nullable()->after('company_name');
-            $table->timestamp('last_login_at')->nullable();
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->enum('role', ['admin', 'designer', 'client'])->default('client');
+            }
+            if (!Schema::hasColumn('users', 'status')) {
+                $table->string('status')->default('active');
+            }
+            if (!Schema::hasColumn('users', 'phone')) {
+                $table->string('phone')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'city')) {
+                $table->string('city')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'country')) {
+                $table->string('country')->default('Cameroon');
+            }
+            if (!Schema::hasColumn('users', 'company_name')) {
+                $table->string('company_name')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'avatar')) {
+                $table->string('avatar')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'last_login_at')) {
+                $table->timestamp('last_login_at')->nullable();
+            }
         });
     }
 
@@ -36,16 +45,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
-                'role', 
-                'status', 
-                'phone', 
-                'city', 
-                'country', 
-                'company_name', 
-                'avatar', 
-                'last_login_at'
-            ]);
+            $columnsToDrop = array_filter([
+                'role', 'status', 'phone', 'city', 'country', 'company_name', 'avatar', 'last_login_at'
+            ], fn($col) => Schema::hasColumn('users', $col));
+
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 };

@@ -2,30 +2,33 @@
 import { Link, usePage } from '@inertiajs/react'
 import {
     LayoutDashboard,
+    CheckSquare,
+    Users,
+    CreditCard,
     FolderKanban,
     PenTool,
     Package,
-    Users,
     FileText,
     Mail,
+    Terminal,
     UserCheck,
-    Menu,
-    ExternalLink,
     ChevronLeft,
     ChevronRight,
-    Terminal,
-    Sparkles
+    ExternalLink
 } from "lucide-react"
 import { useState } from 'react'
 
 const NAV_LINKS = [
     { label: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'SOUSCRIPTIONS', href: '/admin/souscriptions', icon: Users },
+    { label: 'COMMANDES', href: '/admin/commandes', icon: CheckSquare },
+    { label: 'CLIENTS (CRM)', href: '/admin/clients', icon: Users },
+    { label: 'SOUSCRIPTIONS', href: '/admin/souscriptions', icon: CreditCard },
     { label: 'PROJETS', href: '/admin/projects', icon: FolderKanban },
     { label: 'SERVICES', href: '/admin/services', icon: PenTool },
     { label: 'PACKS & TARIFS', href: '/admin/packages', icon: Package },
     { label: 'BLOG', href: '/admin/blogs', icon: FileText },
     { label: 'MESSAGES', href: '/admin/contacts', icon: Mail },
+    { label: 'LOGS SYSTÈME', href: '/admin/logs', icon: Terminal },
     { label: 'PROFIL', href: '/profile', icon: UserCheck },
 ]
 

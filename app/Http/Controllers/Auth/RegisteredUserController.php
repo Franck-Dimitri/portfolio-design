@@ -45,6 +45,12 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        \App\Services\ActivityLogger::auth(
+            'auth.register',
+            "Nouvel utilisateur inscrit : {$user->name} ({$user->email})",
+            'success'
+        );
+
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));

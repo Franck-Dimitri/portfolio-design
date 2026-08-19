@@ -1,7 +1,5 @@
 <?php
-// ══════════════════════════════════════════════════════════════
-// database/migrations/2024_01_01_000003_create_livrables_table.php
-// ══════════════════════════════════════════════════════════════
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,7 +11,7 @@ return new class extends Migration
         Schema::create('livrables', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('souscription_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('souscription_id')->constrained('subscriptions')->cascadeOnDelete();
 
             // ── Fichier ───────────────────────────────────────
             $table->string('nom');                    // nom affiché

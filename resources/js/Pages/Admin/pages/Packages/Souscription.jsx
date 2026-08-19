@@ -71,6 +71,15 @@ export default function Souscription({ souscriptions = { data: [] }, filters = {
                                 Suivi du cycle de vie des commandes clients, avancement de production et expédition des livrables.
                             </p>
                         </div>
+
+                        <div className="flex items-center gap-3">
+                            <a
+                                href={route('admin.souscriptions.export')}
+                                className="inline-flex items-center gap-2 border border-gray-700 hover:border-primary-500 text-gray-300 hover:text-white px-4 py-2.5 font-mono text-xs uppercase tracking-widest bg-[#141414] transition-colors"
+                            >
+                                <Download size={14} /> EXPORTER EN CSV
+                            </a>
+                        </div>
                     </div>
                 </div>
 
