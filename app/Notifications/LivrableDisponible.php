@@ -1,23 +1,19 @@
 <?php
 
-// ══════════════════════════════════════════════════════════════
-// app/Notifications/LivrableDisponible.php
-// ══════════════════════════════════════════════════════════════
 namespace App\Notifications;
 
-use App\Models\Souscription;
+use App\Models\Subscription;
 use App\Models\Livrable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\Storage;
 
 class LivrableDisponible extends Notification
 {
     use Queueable;
 
     public function __construct(
-        public Souscription $souscription,
+        public Subscription $souscription,
         public Livrable $livrable
     ) {}
 
@@ -27,19 +23,19 @@ class LivrableDisponible extends Notification
     {
         $s = $this->souscription;
         $l = $this->livrable;
+        $itemTitle = $s->servicePackage ? $s->servicePackage->titre : ($s->service ? $s->service->titre : 'Prestation');
 
         $mail = (new MailMessage)
             ->subject("🎉 Votre livrable est prêt – {$s->reference}")
             ->greeting("Bonjour {$s->client_nom} !")
-            ->line("Votre livrable **{$l->nom}** est disponible.")
-            ->line("**Commande :** {$s->reference} — {$s->servicePackage->titre}");
+            ->line("Votre livrable **{$l->nom}** est disponible au téléchargement.")
+            ->line("**Commande :** {$s->reference} — {$itemTitle}");
 
         if ($l->message) {
-            $mail->line("**Message :** {$l->message}");
+            $mail->line("**Message de l'agence :** {$l->message}");
         }
 
         return $mail
-            ->action("Télécharger mon livrable", route('client.commandes.show', $s->id))
             ->line("Merci de votre confiance — *Dim's Creative Academy*");
     }
 }
