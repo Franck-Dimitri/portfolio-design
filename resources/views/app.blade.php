@@ -21,6 +21,9 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+    {{-- ── Ziggy Routes ───────────────────────────────────────── --}}
+    @routes
+
     {{-- ── Vite Assets ─────────────────────────────────────────── --}}
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
