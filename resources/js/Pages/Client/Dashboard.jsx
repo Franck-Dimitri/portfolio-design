@@ -2,18 +2,15 @@ import { Link, Head } from '@inertiajs/react'
 import ClientLayout from '@/Layouts/ClientLayout'
 import {
     ShoppingBag,
+    DownloadCloud,
     Clock,
     CheckCircle2,
-    DownloadCloud,
-    FileText,
     ArrowRight,
-    MessageSquareText,
     Sparkles,
-    Eye,
-    PlusCircle,
-    Receipt,
-    ExternalLink,
-    HelpCircle
+    FileText,
+    FolderDown,
+    Activity,
+    ExternalLink
 } from 'lucide-react'
 
 const formatPrix = (v) => new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'
@@ -21,266 +18,238 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-
 
 export default function Dashboard({
     stats = {},
-    currentOrder = null,
-    recentOrders = [],
-    recentDeliverables = [],
+    activeSubscription = null,
+    recentSubscriptions = [],
+    latestDeliverables = [],
     whatsappNumber = "237690112233"
 }) {
+    const steps = [
+        { key: 'brief', label: '1. Brief validé', desc: 'Cahier des charges' },
+        { key: 'creation', label: '2. En création', desc: 'Direction artistique' },
+        { key: 'revision', label: '3. Révisions', desc: 'Ajustements & retours' },
+        { key: 'livre', label: '4. Livré & Clôturé', desc: 'Fichiers finaux HD' },
+    ]
 
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'termine':
-                return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">✓ Livré & Terminé</span>
-            case 'en_cours':
-                return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">🎨 En cours de création</span>
-            case 'en_revision':
-                return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30">⚡ En révision</span>
-            default:
-                return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700/40 text-slate-300 border border-slate-700">⏳ En attente</span>
-        }
+    const getStepIndex = (status) => {
+        if (!status || status === 'attente_brief') return 0
+        if (status === 'en_cours') return 1
+        if (status === 'en_revision') return 2
+        if (status === 'termine') return 3
+        return 0
     }
+
+    const currentStepIdx = getStepIndex(activeSubscription?.statut_production)
 
     return (
         <ClientLayout title="Tableau de bord">
-            <Head title="Tableau de bord — Espace Client" />
+            <Head title="Espace Client — Dims Creative Academy" />
 
-            <div className="space-y-8">
+            <div className="w-full space-y-8">
 
                 {/* ══════════════════════════════════════════════════
-                    § 1 – WELCOME BANNER
+                    § 1 – BANNIÈRE DE BIENVENUE
                 ══════════════════════════════════════════════════ */}
-                <div className="relative rounded-3xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-slate-900 border border-amber-500/20 p-6 md:p-8 overflow-hidden shadow-xl">
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-neutral-900 via-neutral-900 to-neutral-800 dark:from-[#141414] dark:to-[#1a1a1a] text-white p-6 md:p-8 border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="space-y-2 max-w-2xl">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold">
-                                <Sparkles size={14} />
-                                <span>Bienvenue dans votre studio DCA</span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/20 border border-primary-500/40 text-primary-400 text-xs font-bold">
+                                <Sparkles size={13} />
+                                <span>Dims Creative Academy • Studio de Design</span>
                             </div>
-                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
-                                Suivez l'avancement de vos <span className="text-amber-400">projets de design</span>
+                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                                Bienvenue sur votre Espace Client
                             </h1>
-                            <p className="text-sm text-slate-300 leading-relaxed">
-                                Retrouvez vos créations en cours, téléchargez vos livrables finaux et échangez directement avec votre designer en toute simplicité.
+                            <p className="text-xs md:text-sm text-neutral-300 leading-relaxed">
+                                Suivez l'avancement de vos identités visuelles, téléchargez vos livrables finaux et échangez directement avec votre designer.
                             </p>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
-                            <Link
-                                href="/packages"
-                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all"
+                        <div className="flex flex-wrap items-center gap-3 shrink-0">
+                            <a
+                                href="/#packages"
+                                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs shadow-lg shadow-primary-500/25 transition-all cursor-pointer"
                             >
-                                <PlusCircle size={17} />
-                                <span>Commander une prestation</span>
-                            </Link>
-
-                            <Link
-                                href="/client/livrables"
-                                className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-white font-medium text-sm border border-slate-700 transition-all"
+                                <ShoppingBag size={15} />
+                                <span>Commander un Pack</span>
+                            </a>
+                            <a
+                                href={`https://wa.me/${whatsappNumber}?text=Bonjour%20Franck,%20je%20vous%20contacte%20depuis%20mon%20espace%20client.`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-xs transition-colors"
                             >
-                                <DownloadCloud size={16} />
-                                <span>Mes Livrables ({stats.total_livrables || 0})</span>
-                            </Link>
+                                <span>Assistance WhatsApp</span>
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 {/* ══════════════════════════════════════════════════
-                    § 2 – 4 STATS CARDS
+                    § 2 – CARTES DE STATISTIQUES
                 ══════════════════════════════════════════════════ */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-                    {/* Projets en cours */}
-                    <div className="p-5 rounded-2xl bg-[#14171F] border border-slate-800/80 hover:border-indigo-500/40 transition-all shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-slate-400">En Production</span>
-                            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-                                <Clock size={18} />
-                            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {/* Stat 1 : En Production */}
+                    <div className="p-6 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">En Production</p>
+                            <p className="text-2xl font-black text-primary-500 mt-1">{stats.en_cours || 0}</p>
+                            <p className="text-[11px] text-neutral-400 mt-1">Projets actifs en cours</p>
                         </div>
-                        <p className="text-2xl md:text-3xl font-extrabold text-white">
-                            {stats.en_cours ?? 0}
-                        </p>
-                        <p className="text-xs text-indigo-400 mt-1 font-medium">
-                            Designs en cours de création
-                        </p>
+                        <div className="w-12 h-12 rounded-2xl bg-primary-500/10 text-primary-500 flex items-center justify-center">
+                            <Activity size={22} />
+                        </div>
                     </div>
 
-                    {/* Livrables Prêts */}
-                    <div className="p-5 rounded-2xl bg-[#14171F] border border-slate-800/80 hover:border-emerald-500/40 transition-all shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-slate-400">Livrables Prêts</span>
-                            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                                <CheckCircle2 size={18} />
-                            </div>
+                    {/* Stat 2 : Livrables */}
+                    <div className="p-6 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Livrables Prêts</p>
+                            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.livrables || 0}</p>
+                            <p className="text-[11px] text-neutral-400 mt-1">Fichiers finaux disponibles</p>
                         </div>
-                        <p className="text-2xl md:text-3xl font-extrabold text-white">
-                            {stats.total_livrables ?? 0}
-                        </p>
-                        <p className="text-xs text-emerald-400 mt-1 font-medium">
-                            Fichiers HD & exports téléchargeables
-                        </p>
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                            <DownloadCloud size={22} />
+                        </div>
                     </div>
 
-                    {/* Commandes Totales */}
-                    <div className="p-5 rounded-2xl bg-[#14171F] border border-slate-800/80 hover:border-amber-500/40 transition-all shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-slate-400">Total Commandes</span>
-                            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                                <ShoppingBag size={18} />
-                            </div>
+                    {/* Stat 3 : Total Commandes */}
+                    <div className="p-6 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Total Commandes</p>
+                            <p className="text-2xl font-black text-neutral-900 dark:text-white mt-1">{stats.total || 0}</p>
+                            <p className="text-[11px] text-neutral-400 mt-1">Depuis votre inscription</p>
                         </div>
-                        <p className="text-2xl md:text-3xl font-extrabold text-white">
-                            {stats.total_commandes ?? 0}
-                        </p>
-                        <p className="text-xs text-amber-400 mt-1 font-medium">
-                            Prestations et abonnements
-                        </p>
+                        <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 flex items-center justify-center">
+                            <ShoppingBag size={22} />
+                        </div>
                     </div>
 
-                    {/* Total Investi */}
-                    <div className="p-5 rounded-2xl bg-[#14171F] border border-slate-800/80 hover:border-slate-700 transition-all shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-slate-400">Factures Réglées</span>
-                            <div className="w-9 h-9 rounded-xl bg-slate-800 text-slate-300 flex items-center justify-center">
-                                <Receipt size={18} />
-                            </div>
+                    {/* Stat 4 : Factures */}
+                    <div className="p-6 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Factures Réglées</p>
+                            <p className="text-2xl font-black text-neutral-900 dark:text-white mt-1">{stats.payees || 0}</p>
+                            <p className="text-[11px] text-neutral-400 mt-1">Reçus disponibles</p>
                         </div>
-                        <p className="text-xl md:text-2xl font-extrabold text-white truncate">
-                            {formatPrix(stats.total_investi)}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-1 font-medium">
-                            Paiements sécurisés CinetPay
-                        </p>
+                        <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 flex items-center justify-center">
+                            <FileText size={22} />
+                        </div>
                     </div>
                 </div>
 
                 {/* ══════════════════════════════════════════════════
-                    § 3 – PROJET EN COURS (STEPPER VISUEL)
+                    § 3 – PROJET ACTIF EN COURS (STEPPER)
                 ══════════════════════════════════════════════════ */}
-                {currentOrder && (
-                    <div className="p-6 md:p-8 rounded-3xl bg-[#14171F] border border-slate-800/90 shadow-md space-y-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+                {activeSubscription && (
+                    <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-5">
                             <div>
-                                <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider block">
-                                    Commande Active
+                                <span className="text-[11px] font-bold text-primary-500 uppercase tracking-wider">
+                                    Projet Actif en Production
                                 </span>
-                                <h3 className="text-lg md:text-xl font-bold text-white mt-0.5">
-                                    {currentOrder.servicePackage?.titre || currentOrder.service?.titre || 'Prestation de Design'}
-                                </h3>
-                                <p className="text-xs text-slate-400 mt-1">
-                                    Réf : <strong className="text-slate-200">{currentOrder.reference}</strong> • Commandé le {formatDate(currentOrder.created_at)}
+                                <h2 className="text-lg md:text-xl font-bold text-neutral-900 dark:text-white mt-0.5">
+                                    {activeSubscription.servicePackage?.titre || activeSubscription.service?.titre || 'Design Sur Mesure'}
+                                </h2>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                    Commande #{activeSubscription.reference} • Lancée le {formatDate(activeSubscription.created_at)}
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                {getStatusBadge(currentOrder.statut_production)}
-                                <Link
-                                    href={`/client/souscriptions/${currentOrder.id}`}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors"
-                                >
-                                    <span>Ouvrir la fiche</span>
-                                    <ArrowRight size={14} />
-                                </Link>
-                            </div>
+                            <Link
+                                href={`/client/souscriptions/${activeSubscription.id}`}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-primary-500 hover:text-white text-neutral-800 dark:text-neutral-200 font-bold text-xs transition-all self-start sm:self-auto"
+                            >
+                                <span>Voir le suivi complet</span>
+                                <ArrowRight size={14} />
+                            </Link>
                         </div>
 
-                        {/* Stepper de Progression Graphique */}
-                        <div className="py-2">
-                            <div className="grid grid-cols-4 gap-2 sm:gap-4 relative">
-                                {[
-                                    { step: 1, label: '1. Briefing', desc: 'Validé', active: true, done: true },
-                                    { step: 2, label: '2. Création', desc: 'En cours', active: currentOrder.statut_production !== 'non_demarre', done: ['en_cours', 'en_revision', 'termine'].includes(currentOrder.statut_production) },
-                                    { step: 3, label: '3. Révisions', desc: 'Ajustements', active: ['en_revision', 'termine'].includes(currentOrder.statut_production), done: ['termine'].includes(currentOrder.statut_production) },
-                                    { step: 4, label: '4. Livraison', desc: 'Fichiers finaux', active: currentOrder.statut_production === 'termine', done: currentOrder.statut_production === 'termine' },
-                                ].map((s) => (
-                                    <div key={s.step} className="flex flex-col items-center text-center space-y-2">
-                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
-                                            s.done
-                                                ? 'bg-emerald-500 text-black ring-4 ring-emerald-500/20'
-                                                : s.active
-                                                ? 'bg-amber-400 text-black ring-4 ring-amber-400/20 animate-pulse'
-                                                : 'bg-slate-800 text-slate-500'
-                                        }`}>
-                                            {s.done ? '✓' : s.step}
+                        {/* Stepper Visuel 4 Étapes */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                            {steps.map((st, idx) => {
+                                const isDone = idx <= currentStepIdx
+                                const isCurrent = idx === currentStepIdx
+
+                                return (
+                                    <div
+                                        key={st.key}
+                                        className={`p-4 rounded-2xl border transition-all ${
+                                            isCurrent
+                                                ? 'bg-primary-500/10 border-primary-500/40 text-primary-600 dark:text-primary-400'
+                                                : isDone
+                                                ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                                : 'bg-neutral-50 dark:bg-neutral-900/50 border-neutral-200 dark:border-neutral-800/80 text-neutral-400'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            {isDone ? (
+                                                <CheckCircle2 size={16} className={isCurrent ? 'text-primary-500' : 'text-emerald-500'} />
+                                            ) : (
+                                                <Clock size={16} />
+                                            )}
+                                            <span className="text-xs font-bold">{st.label}</span>
                                         </div>
-                                        <div>
-                                            <p className={`text-xs font-bold ${s.active ? 'text-white' : 'text-slate-500'}`}>
-                                                {s.label}
-                                            </p>
-                                            <p className="text-[10px] text-slate-400 hidden sm:block">
-                                                {s.desc}
-                                            </p>
-                                        </div>
+                                        <p className="text-[11px] opacity-80">{st.desc}</p>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Raccourcis rapides commande */}
-                        <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-                            <div className="flex items-center gap-2 text-slate-400">
-                                <MessageSquareText size={15} className="text-amber-400" />
-                                <span>{currentOrder.messages?.length || 0} messages échangés</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <a
-                                    href={`/invoices/${currentOrder.id}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-slate-300 hover:text-white flex items-center gap-1 font-medium"
-                                >
-                                    <FileText size={13} />
-                                    <span>Télécharger la facture</span>
-                                </a>
-                            </div>
+                                )
+                            })}
                         </div>
                     </div>
                 )}
 
                 {/* ══════════════════════════════════════════════════
-                    § 4 – GRILLE : DERNIERS LIVRABLES & COMMANDES
+                    § 4 – GRILLE 2 COLONNES : LIVRABLES & COMMANDES
                 ══════════════════════════════════════════════════ */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                    {/* Derniers Livrables Reçus */}
-                    <div className="p-6 rounded-3xl bg-[#14171F] border border-slate-800/80 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <DownloadCloud size={18} className="text-emerald-400" />
-                                <h3 className="text-base font-bold text-white">Derniers Livrables Déposés</h3>
+                    {/* Colonne Gauche : Derniers Livrables */}
+                    <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs space-y-6">
+                        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
+                            <div>
+                                <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                                    Derniers Livrables Disponibles
+                                </h3>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                    Téléchargez vos maquettes et fichiers finaux
+                                </p>
                             </div>
-                            <Link href="/client/livrables" className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1">
-                                <span>Voir tout</span>
+
+                            <Link
+                                href="/client/livrables"
+                                className="text-xs text-primary-500 hover:text-primary-600 font-bold flex items-center gap-1"
+                            >
+                                <span>Tout voir</span>
                                 <ArrowRight size={13} />
                             </Link>
                         </div>
 
-                        {recentDeliverables.length === 0 ? (
-                            <div className="p-8 text-center rounded-2xl bg-slate-900/60 border border-slate-800 text-slate-400 text-xs">
-                                <p>Vos fichiers livrables apparaîtront ici dès que le designer aura finalisé vos créations.</p>
+                        {latestDeliverables.length === 0 ? (
+                            <div className="p-8 text-center rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-dashed border-neutral-200 dark:border-neutral-800 space-y-2">
+                                <FolderDown size={28} className="mx-auto text-neutral-400" />
+                                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
+                                    Aucun livrable disponible pour le moment.
+                                </p>
                             </div>
                         ) : (
-                            <div className="space-y-2.5">
-                                {recentDeliverables.map((livrable) => (
+                            <div className="space-y-3">
+                                {latestDeliverables.map((liv) => (
                                     <div
-                                        key={livrable.id}
-                                        className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 hover:border-emerald-500/30 flex items-center justify-between gap-3 transition-all"
+                                        key={liv.id}
+                                        className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/70 border border-neutral-200 dark:border-neutral-800/80 flex items-center justify-between gap-4 hover:border-primary-500/40 transition-colors"
                                     >
                                         <div className="min-w-0">
-                                            <p className="text-xs font-bold text-white truncate">
-                                                {livrable.nom}
-                                            </p>
-                                            <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                                                {livrable.fichier_nom_original || 'Fichier de livraison'} • {formatDate(livrable.created_at)}
+                                            <p className="text-xs font-bold text-neutral-900 dark:text-white truncate">{liv.nom}</p>
+                                            <p className="text-[11px] text-neutral-500 truncate mt-0.5">
+                                                Ajouté le {formatDate(liv.created_at)}
                                             </p>
                                         </div>
 
                                         <a
-                                            href={`/storage/${livrable.fichier_path}`}
+                                            href={`/storage/${liv.fichier_path}`}
                                             download
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-black font-semibold text-xs transition-all shrink-0 flex items-center gap-1.5"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs shadow-sm transition-all shrink-0"
                                         >
                                             <DownloadCloud size={13} />
                                             <span>Télécharger</span>
@@ -291,53 +260,57 @@ export default function Dashboard({
                         )}
                     </div>
 
-                    {/* Historique des Commandes Récentes */}
-                    <div className="p-6 rounded-3xl bg-[#14171F] border border-slate-800/80 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <ShoppingBag size={18} className="text-amber-400" />
-                                <h3 className="text-base font-bold text-white">Commandes Récentes</h3>
+                    {/* Colonne Droite : Commandes Récentes */}
+                    <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#121212] border border-neutral-200 dark:border-neutral-800 shadow-xs space-y-6">
+                        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
+                            <div>
+                                <h3 className="text-base font-bold text-neutral-900 dark:text-white">
+                                    Historique des Commandes
+                                </h3>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                    Vos packs et prestations de design
+                                </p>
                             </div>
-                            <Link href="/client/souscriptions" className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1">
-                                <span>Voir tout</span>
+
+                            <Link
+                                href="/client/souscriptions"
+                                className="text-xs text-primary-500 hover:text-primary-600 font-bold flex items-center gap-1"
+                            >
+                                <span>Tout voir</span>
                                 <ArrowRight size={13} />
                             </Link>
                         </div>
 
-                        {recentOrders.length === 0 ? (
-                            <div className="p-8 text-center rounded-2xl bg-slate-900/60 border border-slate-800 text-slate-400 text-xs">
-                                <p>Vous n'avez pas encore passé de commande.</p>
-                                <Link href="/packages" className="inline-block mt-3 px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs">
-                                    Découvrir les packs
-                                </Link>
+                        {recentSubscriptions.length === 0 ? (
+                            <div className="p-8 text-center rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-dashed border-neutral-200 dark:border-neutral-800 space-y-2">
+                                <ShoppingBag size={28} className="mx-auto text-neutral-400" />
+                                <p className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">
+                                    Aucune commande enregistrée.
+                                </p>
                             </div>
                         ) : (
-                            <div className="space-y-2.5">
-                                {recentOrders.map((order) => (
-                                    <Link
-                                        key={order.id}
-                                        href={`/client/souscriptions/${order.id}`}
-                                        className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 hover:border-amber-400/40 flex items-center justify-between gap-3 transition-all block group"
+                            <div className="space-y-3">
+                                {recentSubscriptions.map((sub) => (
+                                    <div
+                                        key={sub.id}
+                                        className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/70 border border-neutral-200 dark:border-neutral-800/80 flex items-center justify-between gap-4"
                                     >
                                         <div className="min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors truncate">
-                                                    {order.servicePackage?.titre || order.service?.titre || 'Prestation'}
-                                                </p>
-                                                <span className="text-[10px] text-slate-500 font-mono">
-                                                    #{order.reference}
-                                                </span>
-                                            </div>
-                                            <p className="text-[11px] text-slate-400 mt-0.5">
-                                                {formatDate(order.created_at)} • {formatPrix(order.montant || order.servicePackage?.prix || order.service?.prix)}
+                                            <p className="text-xs font-bold text-neutral-900 dark:text-white truncate">
+                                                {sub.servicePackage?.titre || sub.service?.titre || 'Design'}
+                                            </p>
+                                            <p className="text-[11px] text-neutral-500 mt-0.5">
+                                                Réf: #{sub.reference} • {formatPrix(sub.payment?.amount || sub.montant)}
                                             </p>
                                         </div>
 
-                                        <div className="shrink-0 flex items-center gap-2">
-                                            {getStatusBadge(order.statut_production)}
-                                            <ArrowRight size={14} className="text-slate-500 group-hover:text-white transition-colors" />
-                                        </div>
-                                    </Link>
+                                        <Link
+                                            href={`/client/souscriptions/${sub.id}`}
+                                            className="px-3 py-1.5 rounded-xl bg-neutral-200 dark:bg-neutral-800 hover:bg-primary-500 hover:text-white text-neutral-800 dark:text-neutral-200 font-bold text-xs transition-colors shrink-0"
+                                        >
+                                            Détails
+                                        </Link>
+                                    </div>
                                 ))}
                             </div>
                         )}

@@ -42,6 +42,23 @@ class AuthenticatedSessionController extends Controller
             ['role' => $user->role]
         );
 
+        // Sécurité & Redirection stricte selon le rôle
+        if ($user->role === 'client') {
+            $intended = session()->get('url.intended');
+            if ($intended && str_contains($intended, '/admin')) {
+                session()->forget('url.intended');
+            }
+            return redirect()->intended(route('client.dashboard', absolute: false));
+        }
+
+        if ($user->role === 'admin') {
+            $intended = session()->get('url.intended');
+            if ($intended && str_contains($intended, '/client')) {
+                session()->forget('url.intended');
+            }
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

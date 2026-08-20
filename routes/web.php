@@ -72,7 +72,12 @@ Route::post('/blog/{id}/comment', [PublicBlogController::class, 'storeComment'])
 
 // ── Tunnel de Souscription & Paiement (Auth requis) ───────────
 Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', function () {
+        if (Auth::user()->role === 'client') {
+            return redirect()->route('client.profil.index');
+        }
+        return app(ProfileController::class)->edit(request());
+    })->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -122,8 +127,8 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::patch('/profil', [ClientDashboardController::class, 'updateProfil'])->name('profil.update');
 });
 
-// ── Espace Administration (Auth + Verified requis) ────────────
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+// ── Espace Administration (Auth + Admin requis) ───────────────
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Commandes & Kanban de Production
