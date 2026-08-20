@@ -13,21 +13,25 @@ class ConfirmationSouscription extends Notification
 
     public function __construct(public Subscription $souscription) {}
 
-    public function via($notifiable): array { return ['mail']; }
+    public function via($notifiable): array
+    {
+        return ['mail'];
+    }
 
     public function toMail($notifiable): MailMessage
     {
         $s = $this->souscription;
-        $packTitle = $s->servicePackage ? $s->servicePackage->titre : ($s->service ? $s->service->titre : 'Prestation');
+        $packTitle = $s->servicePackage ? $s->servicePackage->titre : ($s->service ? $s->service->titre : 'Prestation de Design');
 
         return (new MailMessage)
-            ->subject("✅ Confirmation de votre commande – {$s->reference}")
+            ->subject("✅ Confirmation de votre commande – #{$s->reference}")
             ->greeting("Bonjour {$s->client_nom} !")
-            ->line("Votre paiement de **{$s->montant_formate}** a été reçu avec succès.")
-            ->line("**Prestation souscrite :** {$packTitle}")
-            ->line("**Référence :** {$s->reference}")
-            ->line("Nous commençons la production sous **24h ouvrées**.")
-            ->line("Vous recevrez vos livrables par email et WhatsApp dès qu'ils sont prêts.")
+            ->line("Nous vous confirmons la bonne réception de votre commande et de votre paiement de **{$s->montant_formate}**.")
+            ->line("**Prestation :** {$packTitle}")
+            ->line("**Référence de commande :** #{$s->reference}")
+            ->line("Notre équipe créative a pris en charge votre projet et démarre la production sous 24h ouvrées.")
+            ->action("Consulter votre espace & Facture", route('client.souscriptions.show', $s->id))
+            ->line("Vous recevrez vos livrables par email, WhatsApp et directement dans votre espace client.")
             ->line("Merci de votre confiance — *Dim's Creative Academy*");
     }
 }

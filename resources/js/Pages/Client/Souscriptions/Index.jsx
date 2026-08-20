@@ -1,157 +1,232 @@
-import { useState } from 'react'
-import { router, Link } from '@inertiajs/react'
+import { Link, Head, router } from '@inertiajs/react'
 import ClientLayout from '@/Layouts/ClientLayout'
 import {
-    Package, Clock, CheckCircle2, ChevronRight, Download,
-    FileText, Terminal, Crosshair, Sparkles, Filter, Inbox
+    ShoppingBag,
+    Search,
+    Filter,
+    ArrowRight,
+    DownloadCloud,
+    FileText,
+    MessageSquareText,
+    Clock,
+    CheckCircle2,
+    Sparkles,
+    PlusCircle,
+    Receipt
 } from 'lucide-react'
+import { useState } from 'react'
 
 const formatPrix = (v) => new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—'
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
-export default function Index({ souscriptions = { data: [] }, filters = {} }) {
-    const [statut, setStatut] = useState(filters.statut || '')
+export default function Index({
+    souscriptions = { data: [] },
+    filters = {},
+    counts = {},
+    whatsappNumber = "237690112233"
+}) {
+    const [search, setSearch] = useState(filters.search || '')
+    const [currentStatut, setCurrentStatut] = useState(filters.statut || '')
 
-    const handleFilter = (val) => {
-        setStatut(val)
+    const handleFilterChange = (statut) => {
+        setCurrentStatut(statut)
         router.get(route('client.souscriptions.index'), {
-            statut: val || undefined,
-        }, {
-            preserveState: true,
-            replace: true,
-        })
+            statut: statut || undefined,
+            search: search || undefined
+        }, { preserveState: true, replace: true })
     }
 
+    const handleSearchSubmit = (e) => {
+        e.preventDefault()
+        router.get(route('client.souscriptions.index'), {
+            statut: currentStatut || undefined,
+            search: search || undefined
+        }, { preserveState: true, replace: true })
+    }
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'termine':
+                return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">✓ Livré & Terminé</span>
+            case 'en_cours':
+                return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">🎨 En cours de création</span>
+            case 'en_revision':
+                return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30">⚡ En révision</span>
+            default:
+                return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/40 text-slate-300 border border-slate-700">⏳ En attente</span>
+        }
+    }
+
+    const tabs = [
+        { key: '', label: 'Toutes les commandes', count: counts.all || 0 },
+        { key: 'en_cours', label: 'En création', count: counts.en_cours || 0 },
+        { key: 'en_revision', label: 'En révision', count: counts.en_revision || 0 },
+        { key: 'termine', label: 'Livrées', count: counts.termine || 0 },
+    ]
+
     return (
-        <ClientLayout title="Mes Commandes & Packs">
-            <div className="space-y-8">
+        <ClientLayout title="Mes Commandes & Projets">
+            <Head title="Mes Commandes — Espace Client" />
 
-                {/* ── HEADER ── */}
-                <div className="relative border border-gray-800 bg-[#0E0E0E] p-6 overflow-hidden">
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary-500"></div>
-                    <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary-500"></div>
-                    <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary-500"></div>
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-primary-500"></div>
+            <div className="space-y-6">
 
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-primary-500 font-bold mb-1">
-                                <Terminal size={12} />
-                                <span>HISTORIQUE PERSONNEL</span>
-                            </div>
-                            <h1 className="text-2xl md:text-3xl font-display font-bold uppercase tracking-tight text-white">
-                                MES COMMANDES & <span className="text-primary-500">SOUSCRIPTIONS</span>
-                            </h1>
-                            <p className="text-xs font-mono text-gray-400 mt-1">
-                                Suivez chaque projet, accédez aux livrables et téléchargez vos reçus officiels.
-                            </p>
+                {/* ══════════════════════════════════════════════════
+                    § 1 – HEADER & ACTION
+                ══════════════════════════════════════════════════ */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                            Mes Commandes & Abonnements
+                        </h1>
+                        <p className="text-xs text-slate-400 mt-1">
+                            Retrouvez l'historique complet de vos prestations et suivez l'avancement en temps réel.
+                        </p>
+                    </div>
+
+                    <Link
+                        href="/packages"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition-all shrink-0"
+                    >
+                        <PlusCircle size={15} />
+                        <span>Nouvelle commande</span>
+                    </Link>
+                </div>
+
+                {/* ══════════════════════════════════════════════════
+                    § 2 – BARRE DE FILTRES & RECHERCHE
+                ══════════════════════════════════════════════════ */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    {/* Tabs statut */}
+                    <div className="flex flex-wrap gap-2">
+                        {tabs.map((tab) => {
+                            const isActive = currentStatut === tab.key
+                            return (
+                                <button
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => handleFilterChange(tab.key)}
+                                    className={`
+                                        flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all
+                                        ${isActive
+                                            ? 'bg-amber-400 text-slate-950 shadow-sm'
+                                            : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
+                                        }
+                                    `}
+                                >
+                                    <span>{tab.label}</span>
+                                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
+                                        isActive ? 'bg-black/20 text-slate-950' : 'bg-slate-800 text-slate-400'
+                                    }`}>
+                                        {tab.count}
+                                    </span>
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {/* Recherche */}
+                    <form onSubmit={handleSearchSubmit} className="relative w-full md:w-64">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Rechercher référence ou titre..."
+                            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-amber-400 text-white text-xs placeholder-slate-500 focus:ring-0 transition-colors"
+                        />
+                        <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
+                    </form>
+                </div>
+
+                {/* ══════════════════════════════════════════════════
+                    § 3 – LISTE DES COMMANDES
+                ══════════════════════════════════════════════════ */}
+                {souscriptions.data.length === 0 ? (
+                    <div className="p-12 text-center rounded-3xl bg-[#14171F] border border-slate-800/80 space-y-4">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                            <ShoppingBag size={24} />
                         </div>
-
+                        <h3 className="text-base font-bold text-white">Aucune commande trouvée</h3>
+                        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                            Vous n'avez aucune commande correspondant aux critères de recherche actuels.
+                        </p>
                         <Link
                             href="/packages"
-                            className="inline-flex items-center gap-2 bg-primary-500 text-black px-5 py-2.5 font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors shrink-0"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs shadow-md hover:bg-amber-300 transition-colors"
                         >
-                            COMMANDER UN AUTRE PACK
+                            <span>Découvrir nos offres & packs</span>
                         </Link>
                     </div>
-                </div>
+                ) : (
+                    <div className="space-y-4">
+                        {souscriptions.data.map((sub) => {
+                            const title = sub.servicePackage?.titre || sub.service?.titre || 'Prestation de Design'
+                            const price = sub.payment?.amount || sub.montant || sub.servicePackage?.prix || sub.service?.prix
+                            const hasDeliverables = (sub.livrables?.length || 0) > 0
 
-                {/* ── FILTRES ── */}
-                <div className="border border-gray-800 bg-[#0E0E0E] p-4 flex gap-3">
-                    <select
-                        value={statut}
-                        onChange={(e) => handleFilter(e.target.value)}
-                        className="bg-[#141414] border border-gray-800 text-gray-300 text-xs font-mono px-3 py-2 focus:border-primary-500 focus:outline-none"
-                    >
-                        <option value="">Tous les statuts de production</option>
-                        <option value="non_demarre">En attente du brief</option>
-                        <option value="en_cours">En cours de création</option>
-                        <option value="en_revision">En révision</option>
-                        <option value="termine">Livrées & terminées</option>
-                    </select>
-                </div>
+                            return (
+                                <div
+                                    key={sub.id}
+                                    className="p-5 md:p-6 rounded-3xl bg-[#14171F] border border-slate-800/80 hover:border-slate-700 transition-all shadow-sm space-y-4"
+                                >
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2.5">
+                                                <h3 className="text-base md:text-lg font-bold text-white">
+                                                    {title}
+                                                </h3>
+                                                <span className="text-xs font-mono font-semibold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md">
+                                                    #{sub.reference}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-400">
+                                                Commandé le <strong className="text-slate-300">{formatDate(sub.created_at)}</strong> • Montant : <strong className="text-amber-400">{formatPrix(price)}</strong>
+                                            </p>
+                                        </div>
 
-                {/* ── TABLEAU DES COMMANDES ── */}
-                <div className="border border-gray-800 bg-[#0E0E0E] overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs font-mono">
-                            <thead className="bg-[#141414] text-gray-500 text-[10px] uppercase tracking-widest border-b border-gray-800">
-                                <tr>
-                                    <th className="p-4">RÉFÉRENCE</th>
-                                    <th className="p-4">OFFRE / PACK</th>
-                                    <th className="p-4">MONTANT</th>
-                                    <th className="p-4">STATUT</th>
-                                    <th className="p-4">LIVRAISON ESTIMÉE</th>
-                                    <th className="p-4">DATE COMMANDE</th>
-                                    <th className="p-4 text-right">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-800/60">
-                                {souscriptions.data?.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="p-12 text-center text-gray-500 font-mono text-xs">
-                                            <Inbox size={32} className="mx-auto mb-3 opacity-40" />
-                                            AUCUNE COMMANDE TROUVÉE
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    souscriptions.data?.map((sub) => {
-                                        const item = sub.service_package || sub.service || {}
-                                        return (
-                                            <tr key={sub.id} className="hover:bg-[#141414] transition-colors">
-                                                <td className="p-4 font-bold text-primary-500">
-                                                    {sub.reference}
-                                                </td>
-                                                <td className="p-4 text-white">
-                                                    <span className="px-1.5 py-0.5 border border-gray-800 bg-[#161616] text-[9px] uppercase mr-1.5 text-gray-400">
-                                                        {sub.service_package_id ? 'PACK' : 'SERVICE'}
-                                                    </span>
-                                                    {item.titre || item.nom || 'Sur-mesure'}
-                                                </td>
-                                                <td className="p-4 font-bold text-gray-300">
-                                                    {formatPrix(sub.montant)}
-                                                </td>
-                                                <td className="p-4">
-                                                    {sub.statut_production === 'termine' ? (
-                                                        <span className="px-2 py-0.5 text-[9px] bg-green-500/10 text-green-400 border border-green-500/30 uppercase font-bold">
-                                                            TERMINÉ ✓
-                                                        </span>
-                                                    ) : sub.statut_production === 'en_cours' ? (
-                                                        <span className="px-2 py-0.5 text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/30 uppercase font-bold">
-                                                            EN CRÉATION ⏳
-                                                        </span>
-                                                    ) : sub.statut_production === 'en_revision' ? (
-                                                        <span className="px-2 py-0.5 text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase font-bold">
-                                                            RÉVISION ⚡
-                                                        </span>
-                                                    ) : (
-                                                        <span className="px-2 py-0.5 text-[9px] bg-gray-800 text-gray-400 uppercase">
-                                                            EN ATTENTE DU BRIEF
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="p-4 text-gray-400 text-[11px]">
-                                                    {sub.date_livraison_estimee ? formatDate(sub.date_livraison_estimee) : '—'}
-                                                </td>
-                                                <td className="p-4 text-gray-500 text-[10px]">
-                                                    {formatDate(sub.created_at)}
-                                                </td>
-                                                <td className="p-4 text-right">
-                                                    <Link
-                                                        href={route('client.souscriptions.show', sub.id)}
-                                                        className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-primary-500 hover:text-black border border-primary-500 px-3 py-1 bg-primary-500/10 hover:bg-primary-500 transition-all"
-                                                    >
-                                                        SUIVRE <ChevronRight size={10} />
-                                                    </Link>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                )}
-                            </tbody>
-                        </table>
+                                        <div className="flex items-center gap-2 self-start md:self-auto">
+                                            {getStatusBadge(sub.statut_production)}
+                                        </div>
+                                    </div>
+
+                                    {/* Informations & Actions */}
+                                    <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                        <div className="flex items-center gap-4 text-slate-400">
+                                            <span className="flex items-center gap-1.5">
+                                                <MessageSquareText size={14} className="text-amber-400" />
+                                                <span>{sub.messages?.length || 0} messages</span>
+                                            </span>
+
+                                            <span className="flex items-center gap-1.5">
+                                                <DownloadCloud size={14} className={hasDeliverables ? 'text-emerald-400' : 'text-slate-500'} />
+                                                <span>{sub.livrables?.length || 0} livrables</span>
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <a
+                                                href={`/invoices/${sub.id}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium transition-colors"
+                                            >
+                                                <FileText size={13} />
+                                                <span>Facture</span>
+                                            </a>
+
+                                            <Link
+                                                href={`/client/souscriptions/${sub.id}`}
+                                                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold shadow-xs transition-colors"
+                                            >
+                                                <span>Détails & Discussion</span>
+                                                <ArrowRight size={13} />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
-                </div>
+                )}
 
             </div>
         </ClientLayout>

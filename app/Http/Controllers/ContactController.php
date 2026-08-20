@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Mail\ContactMail;
 use App\Models\Contact;
-use Illuminate\Support\Facades\Mail;
+use App\Models\Setting;
+use App\Notifications\NouveauMessageContact;
+use App\Services\ActivityLogger;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
@@ -13,8 +15,6 @@ class ContactController extends Controller
     public function send(Request $request)
     {
         try {
-            Log::info('Début envoi message contact', $request->all());
-
             // Validation
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -22,10 +22,8 @@ class ContactController extends Controller
                 'subject' => 'required|string|max:255',
                 'service' => 'nullable|string|max:255',
                 'phone' => 'nullable|string|max:255',
-                'message' => 'required|string',
+                'message' => 'required|string|max:5000',
             ]);
-
-            Log::info('Validation passée');
 
             // Sauvegarder en base de données
             $contact = Contact::create([
@@ -38,21 +36,23 @@ class ContactController extends Controller
                 'is_read' => false,
             ]);
 
-            Log::info('Contact sauvegardé ID: ' . $contact->id);
+            // Journaliser l'activité
+            ActivityLogger::system("Nouveau message de contact reçu de {$contact->name} ({$contact->email})", 'info');
 
-            // Envoyer l'email
-            Mail::to(env('MAIL_TO_ME', 'dims.creative.academy@gmail.com'))
-                ->send(new ContactMail($validated));
+            // Envoyer la notification email à l'admin
+            $adminEmail = Setting::get('notification_email_admin', Setting::get('contact_email', config('mail.from.address', 'admin@dimscreative.com')));
+            
+            try {
+                Notification::route('mail', $adminEmail)->notify(new NouveauMessageContact($contact));
+            } catch (\Exception $mailEx) {
+                Log::warning("Échec envoi email notification contact: " . $mailEx->getMessage());
+            }
 
-            Log::info('Email envoyé avec succès');
-
-            return redirect()->back()->with('success', 'Message envoyé avec succès !');
+            return redirect()->back()->with('success', 'Votre message a été transmis avec succès. Nous vous répondrons dans les plus brefs délais.');
 
         } catch (\Exception $e) {
-            Log::error('Erreur envoi message: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return redirect()->back()->withErrors(['error' => 'Erreur lors de l\'envoi: ' . $e->getMessage()]);
+            Log::error('Erreur envoi message contact: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Erreur lors de l\'envoi du message. Veuillez réessayer ou nous contacter via WhatsApp.']);
         }
     }
 }

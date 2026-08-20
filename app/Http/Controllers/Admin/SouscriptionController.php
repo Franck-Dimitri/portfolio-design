@@ -9,8 +9,11 @@ use App\Models\Livrable;
 use App\Models\SubscriptionMessage;
 use App\Services\WhatsAppService;
 use App\Notifications\LivrableDisponible;
+use App\Notifications\NouveauMessageSouscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
@@ -234,6 +237,20 @@ class SouscriptionController extends Controller
         ]);
 
         $souscription->logActivity('message_sent', 'Message envoyé par l\'administration DCA');
+
+        // Notification par email du client
+        try {
+            $clientUser = $souscription->user;
+            $clientEmail = $souscription->client_email ?: $clientUser?->email;
+            if ($clientUser) {
+                $clientUser->notify(new NouveauMessageSouscription($souscription, $msgObj = SubscriptionMessage::where('subscription_id', $souscription->id)->latest()->first()));
+            } elseif ($clientEmail) {
+                Notification::route('mail', $clientEmail)
+                    ->notify(new NouveauMessageSouscription($souscription, SubscriptionMessage::where('subscription_id', $souscription->id)->latest()->first()));
+            }
+        } catch (\Exception $e) {
+            Log::warning("Échec notification client message: " . $e->getMessage());
+        }
 
         return back()->with('success', 'Message envoyé au client.');
     }

@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Models\User;
+use App\Models\Setting;
+use App\Notifications\ConfirmationSouscription;
+use App\Notifications\NouvelleCommandeAdmin;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
-use Inertia\Inertia; 
+use Illuminate\Support\Facades\Str;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
@@ -28,8 +33,6 @@ class PaymentController extends Controller
 
     public function processPayment(Request $request, $subscriptionId)
     {
-
-    
         $subscription = Subscription::with(['user', 'servicePackage', 'service'])->findOrFail($subscriptionId);
         
         // Vérifier que la souscription appartient à l'utilisateur connecté
@@ -56,9 +59,9 @@ class PaymentController extends Controller
         // Déterminer le montant total
         $amount = $subscription->getTotalAmount();
 
-        // EXTRACTION DES PARAMÈTRES DEPUIS L'URL (Query Strings)
-        $phone = $request->query('phone');
-        $operator = $request->query('operator');
+        // EXTRACTION DES PARAMÈTRES DEPUIS L'URL ou le Body
+        $phone = $request->query('phone', $request->input('phone'));
+        $operator = $request->query('operator', $request->input('operator'));
 
         // Sécurité au cas où les paramètres manquent dans la redirection URL
         if (!$phone || !$operator) {
@@ -84,14 +87,10 @@ class PaymentController extends Controller
             }
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // Si l'hôte est introuvable ou l'API hors-ligne, on attrape l'erreur proprement
             return back()->with('error', 'La passerelle de paiement est actuellement inaccessible. Veuillez réessayer plus tard.');
         }
 
-        // ══════════════════════════════════════════════════════════
         // ÉTAPE 2 : Initier le prélèvement Mobile Money (Cash-In)
-        // ══════════════════════════════════════════════════════════
-        // CORRECTION : On utilise la variable locale $phone extraite plus haut
         $formattedPhone = $this->formatPhoneNumber($phone); 
 
         $payinResponse = Http::withHeaders([
@@ -100,13 +99,13 @@ class PaymentController extends Controller
             'Content-Type' => 'application/json',
             'Idempotency-Key' => Str::uuid()->toString(),
         ])->post($this->baseUrl . '/api/v1/payin/mobile-money', [
-            'operator'     => strtoupper($operator), // CORRECTION : Utilise la variable locale $operator
+            'operator'     => strtoupper($operator),
             'country'      => 'CM',
             'phone_number' => $formattedPhone,
             'amount'       => $amount,
             'currency'     => 'XAF',
             'description'  => 'Paiement pour ' . ($subscription->service_package_id ? 'Pack ' . $subscription->servicePackage->titre : 'Service ' . $subscription->service->nom),
-            'notify_url'   => url('/payment/webhook'), // URL du webhook
+            'notify_url'   => url('/payment/webhook'),
         ]);
 
         $responseData = $payinResponse->json();
@@ -114,9 +113,6 @@ class PaymentController extends Controller
         if ($payinResponse->status() === 202 && isset($responseData['success']) && $responseData['success']) {
             $apiData = $responseData['data'];
 
-            // ══════════════════════════════════════════════════════════
-            // ÉTAPE 3 : Enregistrer le Paiement en PENDING dans la BDD
-            // ══════════════════════════════════════════════════════════
             $payment = Payment::create([
                 'user_id' => auth()->id(),
                 'subscription_id' => $subscription->id,
@@ -162,11 +158,9 @@ class PaymentController extends Controller
     // Webhook pour les notifications de paiement
     public function webhook(Request $request)
     {
-        // Vérifier la signature (à adapter selon votre passerelle)
         $payload = $request->all();
         
-        // Log pour debugging
-        \Log::info('Webhook reçu', $payload);
+        Log::info('Webhook reçu', $payload);
 
         if (!isset($payload['reference']) || !isset($payload['status'])) {
             return response()->json(['error' => 'Données incomplètes'], 400);
@@ -183,29 +177,62 @@ class PaymentController extends Controller
 
         DB::beginTransaction();
         try {
-            // Mettre à jour le statut du paiement
-            $payment->status = $status === 'SUCCESS' ? 'success' : 'failed';
+            $isSuccessful = (strtoupper($status) === 'SUCCESS');
+            $payment->status = $isSuccessful ? 'success' : 'failed';
             $payment->gateway_response = json_encode($payload);
             $payment->save();
 
-            // Si le paiement est réussi, activer la souscription
-            if ($payment->status === 'success') {
+            // Si le paiement est réussi, activer la souscription et lancer les notifications
+            if ($isSuccessful) {
                 $subscription = $payment->subscription;
                 $subscription->status = 'active';
+                $subscription->statut_production = 'en_cours';
+                $subscription->date_debut_production = now();
                 $subscription->starts_at = now();
                 
                 // Si c'est un pack, calculer la date de fin
                 if ($subscription->service_package_id) {
-                    $subscription->ends_at = now()->addMonths($subscription->duration_months);
+                    $subscription->ends_at = now()->addMonths($subscription->duration_months ?: 1);
                 }
                 
                 $subscription->save();
+
+                // Journalisation
+                ActivityLogger::payment('payment.success', "Paiement de {$payment->amount} {$payment->currency} validé (Réf: {$subscription->reference})", $subscription, 'success');
+                ActivityLogger::order('order.confirmed', "Commande #{$subscription->reference} confirmée et passée en production", $subscription, 'info');
+
+                // 1. Notification par Email au Client
+                try {
+                    $clientUser = $subscription->user;
+                    if ($clientUser) {
+                        $clientUser->notify(new ConfirmationSouscription($subscription));
+                    } elseif ($subscription->client_email) {
+                        Notification::route('mail', $subscription->client_email)
+                            ->notify(new ConfirmationSouscription($subscription));
+                    }
+                } catch (\Exception $eClientMail) {
+                    Log::warning("Échec notification client email: " . $eClientMail->getMessage());
+                }
+
+                // 2. Notification par Email aux Administrateurs
+                try {
+                    $adminEmail = Setting::get('notification_email_admin', Setting::get('contact_email', 'admin@dimscreative.com'));
+                    Notification::route('mail', $adminEmail)->notify(new NouvelleCommandeAdmin($subscription));
+                    
+                    User::where('role', 'admin')->get()->each(function ($admin) use ($subscription) {
+                        $admin->notify(new NouvelleCommandeAdmin($subscription));
+                    });
+                } catch (\Exception $eAdminMail) {
+                    Log::warning("Échec notification admin email: " . $eAdminMail->getMessage());
+                }
+            } else {
+                ActivityLogger::payment('payment.failed', "Échec de transaction paiement (Réf: {$reference})", $payment->subscription, 'warning');
             }
             
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Erreur webhook paiement: ' . $e->getMessage());
+            Log::error('Erreur webhook paiement: ' . $e->getMessage());
             return response()->json(['error' => 'Erreur interne lors du traitement'], 500);
         }
 
@@ -218,17 +245,14 @@ class PaymentController extends Controller
     private function formatPhoneNumber($phone) {
         $phone = preg_replace('/[^0-9]/', '', $phone);
         
-        // Supprimer le préfixe 237 s'il est déjà présent
         if (str_starts_with($phone, '237')) {
             $phone = substr($phone, 3);
         }
         
-        // Si le numéro commence par 0, le supprimer
         if (str_starts_with($phone, '0')) {
             $phone = substr($phone, 1);
         }
         
-        // Vérifier que le numéro fait 9 chiffres
         if (strlen($phone) === 9) {
             $phone = '237' . $phone;
         }

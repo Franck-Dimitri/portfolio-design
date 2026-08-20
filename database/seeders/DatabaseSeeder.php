@@ -9,6 +9,7 @@ use App\Models\Subscription;
 use App\Models\Payment;
 use App\Models\Livrable;
 use App\Models\SubscriptionMessage;
+use App\Models\Setting;
 use App\Services\ActivityLogger;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -212,5 +213,30 @@ class DatabaseSeeder extends Seeder
         ActivityLogger::order('order.created', 'Commande #DCA-K9281A initiée par Alexandre Kamga', $sub1, 'success');
         ActivityLogger::payment('payment.success', 'Paiement de 250 000 FCFA validé (Réf: DCA-K9281A)', $sub1, 'success');
         ActivityLogger::order('deliverable.uploaded', 'Livrable final déposé pour la commande #DCA-M4419B', $sub2, 'info');
+
+        // ── 7. Paramètres Globaux du Studio ──
+        Setting::set('agency_name', "Dim's Creative Academy", 'general', 'text', 'Nom de l\'agence');
+        Setting::set('agency_tagline', "Studio de Design Graphique, UI/UX & Identité de Marque", 'general', 'text', 'Slogan');
+        Setting::set('contact_email', "contact@dimscreative.com", 'general', 'text', 'Email public');
+        Setting::set('contact_phone', "+237 690 11 22 33", 'general', 'text', 'Téléphone');
+        Setting::set('office_address', "Douala & Yaoundé, Cameroun", 'general', 'text', 'Adresse');
+
+        Setting::set('whatsapp_number', "237690112233", 'contact', 'text', 'WhatsApp officiel');
+        Setting::set('whatsapp_auto_msg', "Bonjour Franck, je vous contacte depuis votre portfolio Dim's Creative Academy.", 'contact', 'textarea', 'Message auto WhatsApp');
+        Setting::set('notification_email_admin', "admin@dimscreative.com", 'contact', 'text', 'Email admin');
+
+        Setting::set('default_currency', "FCFA", 'financial', 'text', 'Devise');
+        Setting::set('tax_rate', 0, 'financial', 'number', 'TVA %');
+        Setting::set('invoice_prefix', "DCA-FAC-", 'financial', 'text', 'Préfixe facture');
+
+        Setting::set('social_behance', "https://behance.net/franckdimitri", 'social', 'text', 'Behance');
+        Setting::set('social_dribbble', "https://dribbble.com/franckdimitri", 'social', 'text', 'Dribbble');
+        Setting::set('social_linkedin', "https://linkedin.com/in/franckdimitri", 'social', 'text', 'LinkedIn');
+        Setting::set('social_instagram', "https://instagram.com/dimscreative", 'social', 'text', 'Instagram');
+        Setting::set('social_github', "https://github.com/mr-dims-tech", 'social', 'text', 'GitHub');
+
+        Setting::set('meta_default_title', "Dim's Creative Academy — Design Graphique & Direction Artistique", 'seo', 'text', 'Méta Titre SEO');
+        Setting::set('meta_default_desc', "Portfolio & Studio de Design spécialisé en UI/UX, identité visuelle, branding et accompagnement créatif sur mesure.", 'seo', 'textarea', 'Méta Description SEO');
+        Setting::set('maintenance_mode', false, 'seo', 'boolean', 'Mode Maintenance');
     }
 }

@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\ClientAdminController;
 use App\Http\Controllers\Admin\LogAdminController;
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\ContactAdminController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\SitemapController;
 
 use App\Http\Controllers\Client\ClientDashboardController;
 use App\Http\Controllers\InvoiceController;
@@ -111,6 +113,13 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::get('/souscriptions', [ClientDashboardController::class, 'souscriptions'])->name('souscriptions.index');
     Route::get('/souscriptions/{subscription}', [ClientDashboardController::class, 'show'])->name('souscriptions.show');
     Route::post('/souscriptions/{subscription}/message', [ClientDashboardController::class, 'sendMessage'])->name('souscriptions.message');
+    
+    // Nouveaux onglets fonctionnels pour le client
+    Route::get('/livrables', [ClientDashboardController::class, 'livrables'])->name('livrables.index');
+    Route::get('/messages', [ClientDashboardController::class, 'messages'])->name('messages.index');
+    Route::get('/factures', [ClientDashboardController::class, 'factures'])->name('factures.index');
+    Route::get('/profil', [ClientDashboardController::class, 'profil'])->name('profil.index');
+    Route::patch('/profil', [ClientDashboardController::class, 'updateProfil'])->name('profil.update');
 });
 
 // ── Espace Administration (Auth + Verified requis) ────────────
@@ -156,6 +165,15 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('logs', [LogAdminController::class, 'index'])->name('logs.index');
     Route::get('logs/export/csv', [LogAdminController::class, 'exportCsv'])->name('logs.export');
     Route::post('logs/clear-old', [LogAdminController::class, 'clearOld'])->name('logs.clear');
+
+    // Paramètres Globaux du Site & Studio
+    Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::get('param', [SettingController::class, 'index'])->name('param.index');
 });
+
+// ── SEO & Robots ───────────────────────────────────────────────
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
 require __DIR__.'/auth.php';

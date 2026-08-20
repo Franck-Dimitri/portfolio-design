@@ -11,6 +11,7 @@ import {
     FileText,
     Mail,
     Terminal,
+    Settings,
     UserCheck,
     ChevronLeft,
     ChevronRight,
@@ -29,6 +30,7 @@ const NAV_LINKS = [
     { label: 'BLOG', href: '/admin/blogs', icon: FileText },
     { label: 'MESSAGES', href: '/admin/contacts', icon: Mail },
     { label: 'LOGS SYSTÈME', href: '/admin/logs', icon: Terminal },
+    { label: 'PARAMÈTRES', href: '/admin/settings', icon: Settings },
     { label: 'PROFIL', href: '/profile', icon: UserCheck },
 ]
 

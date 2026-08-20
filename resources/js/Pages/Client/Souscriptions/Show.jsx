@@ -1,196 +1,219 @@
-import { useState, useRef } from 'react'
-import { useForm, Link } from '@inertiajs/react'
+import { Link, Head, useForm } from '@inertiajs/react'
 import ClientLayout from '@/Layouts/ClientLayout'
 import {
-    ArrowLeft, Download, FileText, Send, Paperclip, X,
-    CheckCircle2, Clock, Sparkles, Terminal, Printer,
-    MessageSquare, AlertCircle, Package, Shield, Check, MessageCircle
+    ArrowLeft,
+    DownloadCloud,
+    FileText,
+    MessageSquareText,
+    Send,
+    Paperclip,
+    Sparkles,
+    CheckCircle2,
+    Clock,
+    AlertCircle,
+    Calendar,
+    Receipt,
+    ExternalLink,
+    HelpCircle
 } from 'lucide-react'
+import { useState, useRef } from 'react'
 
 const formatPrix = (v) => new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'
-const formatDateTime = (d) => d ? new Date(d).toLocaleString('fr-FR', {
-    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-}) : '—'
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—'
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const formatDateTime = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'
 
-export default function Show({ souscription }) {
-    if (!souscription) return null
+export default function Show({
+    souscription = {},
+    whatsappNumber = "237690112233"
+}) {
+    const fileInputRef = useRef(null)
+    const [fileName, setFileName] = useState('')
 
-    const item = souscription.service_package || souscription.service || {}
-    const [filePreview, setFilePreview] = useState(null)
-    const fileRef = useRef()
-
-    const messageForm = useForm({
+    const { data, setData, post, processing, reset } = useForm({
         message: '',
         attachment: null,
     })
 
-    const handleMsgSubmit = (e) => {
+    const handleSendMessage = (e) => {
         e.preventDefault()
-        messageForm.post(route('client.souscriptions.message', souscription.id), {
-            forceFormData: true,
+        if (!data.message.trim() && !data.attachment) return
+
+        post(route('client.souscriptions.message', souscription.id), {
             preserveScroll: true,
             onSuccess: () => {
-                messageForm.reset()
-                setFilePreview(null)
+                reset()
+                setFileName('')
+                if (fileInputRef.current) fileInputRef.current.value = ''
             }
         })
     }
 
-    // Calcul de l'étape de production actuelle
-    const getStepIndex = (status) => {
+    const title = souscription.servicePackage?.titre || souscription.service?.titre || 'Prestation de Design'
+    const price = souscription.payment?.amount || souscription.montant || souscription.servicePackage?.prix || souscription.service?.prix
+    const livrables = souscription.livrables || []
+    const messages = souscription.messages || []
+
+    const getStatusBadge = (status) => {
         switch (status) {
-            case 'termine': return 4;
-            case 'en_revision': return 3;
-            case 'en_cours': return 2;
-            default: return 1;
+            case 'termine':
+                return <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">✓ Livré & Validé</span>
+            case 'en_cours':
+                return <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">🎨 En cours de création</span>
+            case 'en_revision':
+                return <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">⚡ En révision</span>
+            default:
+                return <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-700/40 text-slate-300 border border-slate-700">⏳ En attente</span>
         }
     }
-    const currentStep = getStepIndex(souscription.statut_production)
 
     return (
-        <ClientLayout title={`Suivi Commande ${souscription.reference}`}>
+        <ClientLayout title={`Commande #${souscription.reference}`}>
+            <Head title={`Commande #${souscription.reference} — Espace Client`} />
+
             <div className="space-y-8">
 
-                {/* ── HEADER ── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-800">
-                    <div className="flex items-center gap-4">
+                {/* ══════════════════════════════════════════════════
+                    § 1 – TOP BAR NAVIGATION & HEADER
+                ══════════════════════════════════════════════════ */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
                         <Link
-                            href={route('client.souscriptions.index')}
-                            className="p-2 border border-gray-800 hover:border-primary-500 text-gray-400 hover:text-white transition-colors"
+                            href="/client/souscriptions"
+                            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-colors"
+                            title="Retour à mes commandes"
                         >
-                            <ArrowLeft size={16} />
+                            <ArrowLeft size={18} />
                         </Link>
+
                         <div>
-                            <div className="flex items-center gap-2 font-mono text-[10px] text-primary-500 uppercase tracking-widest font-bold">
-                                <Terminal size={12} />
-                                <span>SUIVI EN TEMPS RÉEL // RÉF. {souscription.reference}</span>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                    {title}
+                                </h1>
+                                <span className="text-xs font-mono font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md">
+                                    #{souscription.reference}
+                                </span>
                             </div>
-                            <h1 className="text-2xl font-display font-bold uppercase text-white tracking-tight">
-                                {item.titre || item.nom || 'Prestation de Design'}
-                            </h1>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                                Commandé le {formatDate(souscription.created_at)} • Montant : <strong className="text-amber-400">{formatPrix(price)}</strong>
+                            </p>
                         </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
                         <a
-                            href={route('invoices.show', souscription.id)}
+                            href={`https://wa.me/${whatsappNumber}?text=Bonjour%20Franck,%20je%20vous%20contacte%20au%20sujet%20de%20ma%20commande%20%23${souscription.reference}.`}
                             target="_blank"
-                            className="inline-flex items-center gap-2 border border-gray-700 hover:border-primary-500 text-gray-300 hover:text-white px-4 py-2 font-mono text-xs uppercase tracking-widest bg-[#141414] transition-colors"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-black font-semibold text-xs border border-emerald-500/30 transition-all"
                         >
-                            <Printer size={14} /> MA FACTURE PDF
+                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>WhatsApp Designer</span>
                         </a>
 
-                        {souscription.status === 'active' ? (
-                            <span className="px-3 py-1.5 bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-mono font-bold uppercase tracking-widest">
-                                COMMANDE PAYÉE ✓
-                            </span>
-                        ) : (
-                            <span className="px-3 py-1.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 text-xs font-mono font-bold uppercase tracking-widest">
-                                {souscription.status}
-                            </span>
-                        )}
+                        <a
+                            href={`/invoices/${souscription.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors"
+                        >
+                            <FileText size={14} />
+                            <span>Facture officielle</span>
+                        </a>
                     </div>
                 </div>
 
-                {/* ── FRONTIÈRE D'AVANCEMENT & PIPELINE ── */}
-                <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
-                    <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
+                {/* ══════════════════════════════════════════════════
+                    § 2 – STEPPER DE PRODUCTION
+                ══════════════════════════════════════════════════ */}
+                <div className="p-6 md:p-8 rounded-3xl bg-[#14171F] border border-slate-800/90 shadow-md space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-base font-bold text-white">
+                            État d'Avancement de la Création
+                        </h2>
+                        {getStatusBadge(souscription.statut_production)}
+                    </div>
 
-                    <h2 className="font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-6 flex items-center gap-2">
-                        <Clock size={14} />
-                        <span>PIPELINE D'AVANCEMENT DE VOTRE COMMANDE</span>
-                    </h2>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 relative">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                         {[
-                            { num: '01', title: 'PAIEMENT & BRIEF', desc: 'Commande enregistrée', done: currentStep >= 1 },
-                            { num: '02', title: 'CONCEPTION', desc: 'Création des maquettes', done: currentStep >= 2 },
-                            { num: '03', title: 'RÉVISIONS', desc: 'Ajustements & retouches', done: currentStep >= 3 },
-                            { num: '04', title: 'LIVRAISON FINALE', desc: 'Fichiers sources & HD', done: currentStep >= 4 },
-                        ].map((step, idx) => (
-                            <div
-                                key={idx}
-                                className={`p-4 border font-mono text-xs transition-colors ${
-                                    step.done
-                                        ? 'border-primary-500 bg-primary-500/5 text-white'
-                                        : 'border-gray-800 bg-[#121212] text-gray-500'
-                                }`}
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className={`text-[10px] font-bold ${step.done ? 'text-primary-500' : 'text-gray-600'}`}>
-                                        STEP {step.num}
-                                    </span>
-                                    {step.done && <Check size={14} className="text-primary-500" />}
+                            { step: 1, label: '1. Briefing', desc: 'Commande validée', done: true },
+                            { step: 2, label: '2. Création', desc: 'Recherches & Design', done: ['en_cours', 'en_revision', 'termine'].includes(souscription.statut_production) },
+                            { step: 3, label: '3. Révisions', desc: 'Retouches & Ajustements', done: ['en_revision', 'termine'].includes(souscription.statut_production) },
+                            { step: 4, label: '4. Finalisation', desc: 'Exports HD disponibles', done: souscription.statut_production === 'termine' },
+                        ].map((s) => (
+                            <div key={s.step} className={`p-4 rounded-2xl border transition-all ${
+                                s.done
+                                    ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-300'
+                                    : 'bg-slate-900/60 border-slate-800 text-slate-500'
+                            }`}>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                        s.done ? 'bg-emerald-500 text-black' : 'bg-slate-800 text-slate-400'
+                                    }`}>
+                                        {s.done ? '✓' : s.step}
+                                    </div>
+                                    <span className="font-bold text-xs">{s.label}</span>
                                 </div>
-                                <h3 className="font-bold uppercase text-[11px] mb-1">{step.title}</h3>
-                                <p className="text-[10px] text-gray-400">{step.desc}</p>
+                                <p className="text-[11px] text-slate-400">{s.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* ══════════════════════════════════════════════════
+                    § 3 – GRILLE : LIVRABLES ET BRIEFING
+                ══════════════════════════════════════════════════ */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    {/* ══════════════════════════════════════════════════
-                        COLONNE GAUCHE (LIVRABLES & MESSAGES) - 8 COLS
-                    ══════════════════════════════════════════════════ */}
-                    <div className="lg:col-span-8 space-y-6">
+                    {/* Colonne Gauche : Livrables & Téléchargements (2 cols) */}
+                    <div className="lg:col-span-2 space-y-6">
 
-                        {/* COFFRE-FORT DES LIVRABLES */}
-                        <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
-                            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
-
-                            <div className="flex items-center justify-between pb-3 border-b border-gray-800 mb-6">
-                                <h2 className="font-mono text-xs uppercase tracking-widest text-primary-500 font-bold flex items-center gap-2">
-                                    <Download size={14} />
-                                    <span>FICHIERS SOURCES & LIVRABLES ({souscription.livrables?.length || 0})</span>
-                                </h2>
+                        {/* Livrables Prêts */}
+                        <div className="p-6 rounded-3xl bg-[#14171F] border border-slate-800/80 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <DownloadCloud size={18} className="text-emerald-400" />
+                                    <h3 className="text-base font-bold text-white">Livrables & Fichiers Finaux</h3>
+                                </div>
+                                <span className="text-xs font-semibold text-slate-400">
+                                    {livrables.length} fichier(s)
+                                </span>
                             </div>
 
-                            {souscription.livrables?.length === 0 ? (
-                                <div className="p-8 border border-dashed border-gray-800 text-center bg-[#121212]">
-                                    <FileText size={28} className="mx-auto text-gray-600 mb-2" />
-                                    <p className="text-xs font-mono text-gray-400 uppercase font-bold mb-1">
-                                        CONCEPTION EN COURS
-                                    </p>
-                                    <p className="text-[10px] font-mono text-gray-500">
-                                        Vos livrables et fichiers vectoriels seront déposés ici par Franck Dims. Vous recevrez une alerte instantanée par WhatsApp & Email.
-                                    </p>
+                            {livrables.length === 0 ? (
+                                <div className="p-8 text-center rounded-2xl bg-slate-900/60 border border-slate-800 text-slate-400 text-xs space-y-2">
+                                    <p>Les fichiers finaux (Logos, exports vectoriels AI/SVG/PNG, maquettes Figma) seront déposés ici dès la fin de la production.</p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-gray-800/60 border border-gray-800">
-                                    {souscription.livrables?.map((liv) => (
-                                        <div key={liv.id} className="p-4 flex items-center justify-between gap-4 hover:bg-[#141414] transition-colors">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className="w-10 h-10 border border-primary-500/40 bg-primary-500/10 text-primary-500 flex items-center justify-center shrink-0">
-                                                    <FileText size={18} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <h4 className="text-xs font-bold text-white uppercase truncate">{liv.nom}</h4>
-                                                        <span className="px-1.5 py-0.2 text-[9px] font-mono bg-primary-500/20 text-primary-400 border border-primary-500/30 uppercase">
-                                                            {liv.type}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-[10px] font-mono text-gray-400 mt-0.5 truncate">
-                                                        {liv.fichier_nom_original} • {liv.taille_formattee} • Remis le {formatDate(liv.created_at)}
+                                <div className="space-y-3">
+                                    {livrables.map((livrable) => (
+                                        <div
+                                            key={livrable.id}
+                                            className="p-4 rounded-2xl bg-slate-900 border border-slate-800/80 hover:border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+                                        >
+                                            <div className="space-y-1">
+                                                <h4 className="text-sm font-bold text-white">
+                                                    {livrable.nom}
+                                                </h4>
+                                                {livrable.message && (
+                                                    <p className="text-xs text-slate-300">
+                                                        "{livrable.message}"
                                                     </p>
-                                                    {liv.message && (
-                                                        <p className="text-[10px] font-mono text-gray-500 mt-1 italic">
-                                                            "{liv.message}"
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                )}
+                                                <p className="text-[11px] text-slate-500">
+                                                    Déposé le {formatDate(livrable.created_at)}
+                                                </p>
                                             </div>
 
                                             <a
-                                                href={`/storage/${liv.fichier_path}`}
-                                                target="_blank"
+                                                href={`/storage/${livrable.fichier_path}`}
                                                 download
-                                                className="px-4 py-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors shrink-0 flex items-center gap-1.5"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-md transition-all shrink-0"
                                             >
-                                                <Download size={12} /> TÉLÉCHARGER
+                                                <DownloadCloud size={15} />
+                                                <span>Télécharger</span>
                                             </a>
                                         </div>
                                     ))}
@@ -198,54 +221,56 @@ export default function Show({ souscription }) {
                             )}
                         </div>
 
-                        {/* MESSAGERIE DIRECTE & RETOUCHES */}
-                        <div className="border border-gray-800 bg-[#0E0E0E] p-6 relative">
-                            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-primary-500"></div>
-
-                            <div className="flex items-center justify-between pb-3 border-b border-gray-800 mb-6">
-                                <h2 className="font-mono text-xs uppercase tracking-widest text-primary-500 font-bold flex items-center gap-2">
-                                    <MessageSquare size={14} />
-                                    <span>ÉCHANGES & DEMANDES DE RETOUCHES ({souscription.messages?.length || 0})</span>
-                                </h2>
+                        {/* Fil de Discussion Studio */}
+                        <div className="p-6 rounded-3xl bg-[#14171F] border border-slate-800/80 space-y-6">
+                            <div className="flex items-center gap-2 border-b border-slate-800 pb-4">
+                                <MessageSquareText size={18} className="text-amber-400" />
+                                <h3 className="text-base font-bold text-white">
+                                    Échanges & Retours avec le Designer
+                                </h3>
                             </div>
 
-                            {/* Liste des messages */}
-                            <div className="space-y-4 max-h-96 overflow-y-auto pr-2 mb-6 divide-y divide-gray-800/40">
-                                {souscription.messages?.length === 0 ? (
-                                    <p className="text-gray-500 text-xs font-mono py-6 text-center">
-                                        Vous pouvez poser des questions, faire vos retours ou soumettre des modifications ci-dessous.
-                                    </p>
+                            {/* Messages Stream */}
+                            <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                {messages.length === 0 ? (
+                                    <div className="p-6 text-center text-xs text-slate-400 bg-slate-900/60 rounded-2xl">
+                                        Posez une question ou formulez vos retours ci-dessous. Franck Dims vous répondra dans les plus brefs délais.
+                                    </div>
                                 ) : (
-                                    souscription.messages?.map((msg) => {
-                                        const isClient = msg.sender_type === 'client'
+                                    messages.map((msg) => {
+                                        const isAdmin = msg.sender_type === 'admin'
                                         return (
-                                            <div key={msg.id} className={`pt-4 flex flex-col ${isClient ? 'items-end' : 'items-start'}`}>
-                                                <div className="flex items-center gap-2 mb-1 font-mono text-[10px] text-gray-500">
-                                                    <span className={`font-bold ${isClient ? 'text-primary-500' : 'text-green-400'}`}>
-                                                        {isClient ? 'VOUS' : 'FRANCK DIMS (DESIGNER DCA)'}
-                                                    </span>
-                                                    <span>• {formatDateTime(msg.created_at)}</span>
+                                            <div
+                                                key={msg.id}
+                                                className={`flex flex-col ${isAdmin ? 'items-start' : 'items-end'} space-y-1`}
+                                            >
+                                                <div className="flex items-center gap-2 text-[10px] text-slate-400 px-1">
+                                                    <span>{isAdmin ? "Franck Dims (Studio)" : "Vous"}</span>
+                                                    <span>•</span>
+                                                    <span>{formatDateTime(msg.created_at)}</span>
                                                 </div>
-                                                <div className={`p-4 border max-w-xl text-xs font-mono leading-relaxed ${
-                                                    isClient 
-                                                        ? 'bg-[#161616] border-primary-500/40 text-white' 
-                                                        : 'bg-[#121212] border-green-500/30 text-gray-200'
-                                                }`}>
-                                                    <p className="whitespace-pre-wrap">{msg.message}</p>
+
+                                                <div
+                                                    className={`p-4 rounded-2xl max-w-md text-xs leading-relaxed ${
+                                                        isAdmin
+                                                            ? 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'
+                                                            : 'bg-amber-400 text-slate-950 font-medium rounded-tr-none shadow-md'
+                                                    }`}
+                                                >
+                                                    <p>{msg.message}</p>
+
                                                     {msg.attachment_path && (
-                                                        <div className="mt-3 pt-2 border-t border-gray-800 flex items-center justify-between gap-2 text-[10px] text-primary-400">
-                                                            <span className="flex items-center gap-1 truncate">
-                                                                <Paperclip size={12} /> {msg.attachment_name || 'Fichier joint'}
-                                                            </span>
-                                                            <a
-                                                                href={`/storage/${msg.attachment_path}`}
-                                                                target="_blank"
-                                                                download
-                                                                className="underline hover:text-white"
-                                                            >
-                                                                Télécharger
-                                                            </a>
-                                                        </div>
+                                                        <a
+                                                            href={`/storage/${msg.attachment_path}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className={`mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold underline ${
+                                                                isAdmin ? 'text-amber-300' : 'text-slate-900'
+                                                            }`}
+                                                        >
+                                                            <Paperclip size={12} />
+                                                            <span>{msg.attachment_name || 'Pièce jointe'}</span>
+                                                        </a>
                                                     )}
                                                 </div>
                                             </div>
@@ -254,131 +279,112 @@ export default function Show({ souscription }) {
                                 )}
                             </div>
 
-                            {/* Formulaire d'envoi Client */}
-                            <form onSubmit={handleMsgSubmit} className="space-y-3 pt-4 border-t border-gray-800">
-                                <textarea
-                                    required
-                                    rows={3}
-                                    value={messageForm.data.message}
-                                    onChange={(e) => messageForm.setData('message', e.target.value)}
-                                    placeholder="Écrivez vos retours, précisions ou demandes de retouches pour Franck Dims..."
-                                    className="w-full bg-[#141414] border border-gray-800 text-white p-3 text-xs font-mono focus:border-primary-500 focus:outline-none"
-                                />
+                            {/* Formulaire Réponse */}
+                            <form onSubmit={handleSendMessage} className="space-y-3 pt-4 border-t border-slate-800">
+                                <div className="relative">
+                                    <textarea
+                                        rows={3}
+                                        value={data.message}
+                                        onChange={(e) => setData('message', e.target.value)}
+                                        placeholder="Écrivez votre message ou vos retours sur le design..."
+                                        className="w-full p-3.5 rounded-2xl bg-slate-900 border border-slate-800 focus:border-amber-400 text-white text-xs placeholder-slate-500 focus:ring-0 transition-colors"
+                                    />
+                                </div>
 
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-2">
                                         <input
-                                            ref={fileRef}
                                             type="file"
-                                            className="hidden"
+                                            ref={fileInputRef}
                                             onChange={(e) => {
                                                 const file = e.target.files[0]
-                                                if (file) {
-                                                    messageForm.setData('attachment', file)
-                                                    setFilePreview(file.name)
-                                                }
+                                                setData('attachment', file)
+                                                setFileName(file ? file.name : '')
                                             }}
+                                            className="hidden"
+                                            id="chat-file"
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => fileRef.current?.click()}
-                                            className="px-3 py-1.5 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white font-mono text-[10px] uppercase flex items-center gap-1"
+                                        <label
+                                            htmlFor="chat-file"
+                                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
                                         >
-                                            <Paperclip size={12} /> {filePreview ? filePreview : 'JOINDRE UNE CAPTURE OU UN DOCUMENT'}
-                                        </button>
-                                        {filePreview && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setFilePreview(null)
-                                                    messageForm.setData('attachment', null)
-                                                }}
-                                                className="text-gray-500 hover:text-red-400"
-                                            >
-                                                <X size={14} />
-                                            </button>
+                                            <Paperclip size={14} />
+                                            <span>Joindre un fichier</span>
+                                        </label>
+
+                                        {fileName && (
+                                            <span className="text-[11px] text-amber-300 font-medium truncate max-w-xs">
+                                                {fileName}
+                                            </span>
                                         )}
                                     </div>
 
                                     <button
                                         type="submit"
-                                        disabled={messageForm.processing || !messageForm.data.message}
-                                        className="px-6 py-2 bg-primary-500 text-black font-mono font-bold text-xs uppercase tracking-widest hover:bg-primary-400 transition-colors disabled:opacity-50 flex items-center gap-2 self-end"
+                                        disabled={processing || (!data.message.trim() && !data.attachment)}
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs disabled:opacity-40 transition-all cursor-pointer shadow-md"
                                     >
-                                        <Send size={12} /> ENVOYER LE MESSAGE
+                                        <Send size={14} />
+                                        <span>{processing ? 'Envoi...' : 'Envoyer'}</span>
                                     </button>
                                 </div>
                             </form>
                         </div>
-
                     </div>
 
-                    {/* ══════════════════════════════════════════════════
-                        COLONNE DROITE (DÉTAILS COMMANDE & BRIEF) - 4 COLS
-                    ══════════════════════════════════════════════════ */}
-                    <div className="lg:col-span-4 space-y-6">
+                    {/* Colonne Droite : Détails Commande & Brief (1 col) */}
+                    <div className="space-y-6">
 
-                        {/* RÉCAPITULATIF DE LA PRESTATION */}
-                        <div className="border border-gray-800 bg-[#0E0E0E] p-5">
-                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-4 pb-2 border-b border-gray-800">
-                                <Package size={14} />
-                                <span>RÉCAPITULATIF COMMANDE</span>
-                            </div>
+                        {/* Briefing du Client */}
+                        <div className="p-6 rounded-3xl bg-[#14171F] border border-slate-800/80 space-y-4">
+                            <h3 className="text-base font-bold text-white border-b border-slate-800 pb-3">
+                                Récapitulatif du Brief
+                            </h3>
 
-                            <div className="space-y-3 font-mono text-xs">
+                            <div className="space-y-3 text-xs">
                                 <div>
-                                    <span className="text-[10px] text-gray-500 block uppercase">Prestation</span>
-                                    <span className="font-bold text-white text-sm">{item.titre || item.nom || 'Sur-mesure'}</span>
+                                    <span className="text-slate-500 font-medium block">Nom du client :</span>
+                                    <span className="text-slate-200 font-semibold">{souscription.client_nom}</span>
                                 </div>
 
                                 <div>
-                                    <span className="text-[10px] text-gray-500 block uppercase">Montant réglé</span>
-                                    <span className="font-bold text-primary-500 text-lg">{formatPrix(souscription.montant)}</span>
+                                    <span className="text-slate-500 font-medium block">Email :</span>
+                                    <span className="text-slate-200">{souscription.client_email}</span>
                                 </div>
 
-                                {souscription.date_livraison_estimee && (
-                                    <div>
-                                        <span className="text-[10px] text-gray-500 block uppercase">Date estimée de livraison</span>
-                                        <span className="text-white font-bold">{formatDate(souscription.date_livraison_estimee)}</span>
+                                <div>
+                                    <span className="text-slate-500 font-medium block">Téléphone / WhatsApp :</span>
+                                    <span className="text-slate-200">{souscription.client_telephone || '—'}</span>
+                                </div>
+
+                                {souscription.besoins && (
+                                    <div className="pt-2 border-t border-slate-800/80">
+                                        <span className="text-slate-500 font-medium block mb-1">Besoins exprimés :</span>
+                                        <p className="text-slate-300 bg-slate-900/80 p-3 rounded-xl leading-relaxed">
+                                            {souscription.besoins}
+                                        </p>
                                     </div>
                                 )}
-
-                                <div>
-                                    <span className="text-[10px] text-gray-500 block uppercase">Date de validation</span>
-                                    <span className="text-gray-400">{formatDateTime(souscription.created_at)}</span>
-                                </div>
                             </div>
                         </div>
 
-                        {/* BRIEF / CONSIGNES FOURNIES */}
-                        {souscription.besoins && (
-                            <div className="border border-gray-800 bg-[#0E0E0E] p-5">
-                                <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary-500 font-bold mb-3 pb-2 border-b border-gray-800">
-                                    <FileText size={14} />
-                                    <span>VOS CONSIGNES (BRIEF)</span>
-                                </div>
-                                <p className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
-                                    {souscription.besoins}
-                                </p>
+                        {/* Assistance Rapide */}
+                        <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 to-[#14171F] border border-slate-800 text-center space-y-3">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto">
+                                <HelpCircle size={20} />
                             </div>
-                        )}
-
-                        {/* ASSISTANCE DCA DIRECTE */}
-                        <div className="border border-gray-800 bg-[#0E0E0E] p-5 space-y-3">
-                            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-green-500 font-bold pb-2 border-b border-gray-800">
-                                <MessageCircle size={14} />
-                                <span>SUPPORT DESIGNER DIRECT</span>
-                            </div>
-                            <p className="text-xs font-mono text-gray-400 leading-relaxed">
-                                Vous avez une question urgente concernant votre commande ? Contactez directement Franck Dims.
+                            <h4 className="text-sm font-bold text-white">Une question urgente ?</h4>
+                            <p className="text-xs text-slate-400">
+                                Contactez directement votre directeur artistique sur WhatsApp.
                             </p>
                             <a
-                                href="https://wa.me/237690000000"
+                                href={`https://wa.me/${whatsappNumber}?text=Bonjour%20Franck,%20je%20souhaite%20des%20pr%C3%A9cisions%20sur%20ma%20commande%20%23${souscription.reference}.`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="block w-full text-center py-2.5 border border-green-500/40 text-green-400 hover:bg-green-500 hover:text-black font-mono font-bold text-xs uppercase tracking-widest transition-all"
+                                className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-md transition-all"
                             >
-                                CHATTER SUR WHATSAPP
+                                <span>Ouvrir WhatsApp</span>
+                                <ExternalLink size={14} />
                             </a>
                         </div>
 
